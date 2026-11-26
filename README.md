@@ -2,6 +2,8 @@
 
 **Gathering field guide.** Skill requirements in tooltips, a searchable guide of every herb, ore, skin and fish with their zones, recipe vendors, progression and alerts for Herbalism, Mining, Skinning and Fishing.
 
+![FieldGuide](.github/images/fishing.png)
+
 [Français](#français) · [English](#english)
 
 ---
@@ -17,6 +19,8 @@ Addon autonome (sans dépendance) pour les quatre métiers de récolte : **Herbo
 - Les bonus d'équipement comptent (canne et leurre, couteau, gants enchantés…).
 - Mention « Composants nécessaires : » sur la ligne des composants dans les info-bulles de recettes.
 
+![Info-bulles](.github/images/tooltips.png)
+
 ### Fenêtre du guide
 
 - Toutes les **herbes**, les **gisements**, les **tranches de bêtes** et les **poissons**, triés par niveau puis par ordre alphabétique, avec une recherche.
@@ -27,6 +31,10 @@ Addon autonome (sans dépendance) pour les quatre métiers de récolte : **Herbo
 - **Cuirs et écailles spéciaux** : cuir de diablosaure, de sabre-de-givre, de chimère, écailles de dragon, carapaces silithides… ainsi que les dépeçages de raid au-delà de 300 (cuir du Magma, écaille d'Onyxia, écaille de rêve…), avec les bonus disponibles sur Forever.
 - **Quête de Nat Pagle** : les quatre poissons de la quête Artisan avec leur point de pêche, le statut de la quête, les poissons déjà attrapés et une alerte en entrant dans la bonne zone.
 - Fenêtre redimensionnable par l'angle, colonne de liste réglable à la souris, mise en page qui s'adapte à la largeur.
+
+![Dépeçage : cuirs spéciaux et dépeçages de raid](.github/images/skinning.png)
+
+![Quête de Nat Pagle](.github/images/quest.png)
 
 ### Progression et alertes
 
@@ -64,6 +72,8 @@ Standalone addon (no dependency) for the four gathering professions: **Herbalism
 - Equipment bonuses count (fishing pole and lure, knife, enchanted gloves…).
 - "Reagents needed:" label on the reagent line of recipe tooltips.
 
+![Tooltips](.github/images/tooltips.png)
+
 ### Guide window
 
 - Every **herb**, **ore vein**, **creature level range** and **fish**, sorted by level then alphabetically, with a search box.
@@ -74,6 +84,10 @@ Standalone addon (no dependency) for the four gathering professions: **Herbalism
 - **Special leathers and scales**: Devilsaur, Frostsaber and Chimera leather, dragonscales, silithid carapaces… plus the raid skins above 300 (Core Leather, Scale of Onyxia, Dreamscale…), with the bonuses available in Forever.
 - **Nat Pagle quest**: the four fish of the Artisan quest with their fishing spot, the quest status, the fish already caught and an alert when you enter the right zone.
 - Window resizable from its corner, list column width adjustable with the mouse, layout that adapts to the width.
+
+![Skinning: special leathers and raid skins](.github/images/skinning.png)
+
+![Nat Pagle quest](.github/images/quest.png)
 
 ### Progression and alerts
 
