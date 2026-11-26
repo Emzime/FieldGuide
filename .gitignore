@@ -1,0 +1,18 @@
+# Build output
+.release/
+*.zip
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# WoW saved variables copied for debugging
+WTF/
+*.bak

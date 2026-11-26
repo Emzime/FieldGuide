@@ -1,0 +1,32 @@
+# Builds the addon and publishes a GitHub Release when a version tag is pushed.
+#   git tag v1.0.0 && git push origin v1.0.0
+# A tag containing a dash (v1.1.0-beta1) is published as a pre-release.
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history and tags for the release notes
+
+      - name: Build package
+        run: bash .github/scripts/package.sh "$GITHUB_REF_NAME" .release
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: FieldGuide ${{ github.ref_name }}
+          body_path: .release/RELEASE_NOTES.md
+          files: .release/FieldGuide-*.zip
+          prerelease: ${{ contains(github.ref_name, '-') }}

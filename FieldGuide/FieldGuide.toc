@@ -1,0 +1,31 @@
+## Interface: 11509, 20506, 50504, 16001
+## Title: |cffffffffField|r|cff3aa0e8Guide|r
+## Notes: Gathering field guide: skill tooltips, zones, progression, fishing and alerts.
+## Notes-frFR: Guide de terrain pour la récolte : info-bulles de compétence, zones, progression, pêche et alertes.
+## Author: Emzime
+## Version: @project-version@
+## SavedVariables: FieldGuideDB
+## OptionalDeps: ElvUI, Auctionator
+## IconTexture: Interface\AddOns\FieldGuide\Media\Logo
+
+Libs\Libs.xml
+Locales\enUS.lua
+Locales\frFR.lua
+Locales\deDE.lua
+Locales\esES.lua
+Locales\esMX.lua
+Locales\itIT.lua
+Locales\ptBR.lua
+Locales\ruRU.lua
+Locales\koKR.lua
+Locales\zhCN.lua
+Locales\zhTW.lua
+
+FieldGuide.lua
+Modules\Data.lua
+Modules\Tooltip.lua
+Modules\Alerts.lua
+Modules\Tracker.lua
+Modules\Window.lua
+Modules\Minimap.lua
+Modules\Options.lua
