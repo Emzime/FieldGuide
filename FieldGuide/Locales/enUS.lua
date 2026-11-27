@@ -1,5 +1,13 @@
 -- FieldGuide - English (default) locale
 local L = LibStub("AceLocale-3.0"):NewLocale("FieldGuide", "enUS", true)
+local _, ns = ...
+
+-- English node names are also kept apart, to spot the ones not translated in the client language
+ns.NODE_EN = {}
+local function Node(key, name)
+    L["NODE_" .. key] = name
+    ns.NODE_EN[key] = name
+end
 
 -- Profession names as shown in the skill list (used to read skill levels)
 L["PROF_herb"] = "Herbalism"
@@ -145,23 +153,23 @@ L["Usage: /fg [options | reset]"] = "Usage: /fg [options | reset]"
 L["CREATURE_BEAST"] = "Beast"
 
 -- Ore node names (other languages are learned automatically after the first gather)
-L["NODE_copper"] = "Copper Vein"
-L["NODE_tin"] = "Tin Vein"
-L["NODE_silver"] = "Silver Vein"
-L["NODE_silverOoze"] = "Ooze Covered Silver Vein"
-L["NODE_iron"] = "Iron Deposit"
-L["NODE_gold"] = "Gold Vein"
-L["NODE_goldOoze"] = "Ooze Covered Gold Vein"
-L["NODE_mithril"] = "Mithril Deposit"
-L["NODE_mithrilOoze"] = "Ooze Covered Mithril Deposit"
-L["NODE_truesilver"] = "Truesilver Deposit"
-L["NODE_truesilverOoze"] = "Ooze Covered Truesilver Deposit"
-L["NODE_darkiron"] = "Dark Iron Deposit"
-L["NODE_smallthorium"] = "Small Thorium Vein"
-L["NODE_thoriumOoze"] = "Ooze Covered Thorium Vein"
-L["NODE_richthorium"] = "Rich Thorium Vein"
-L["NODE_heavythorium"] = "Heavy Thorium Vein"
-L["NODE_richthoriumOoze"] = "Ooze Covered Rich Thorium Vein"
+Node("copper", "Copper Vein")
+Node("tin", "Tin Vein")
+Node("silver", "Silver Vein")
+Node("silverOoze", "Ooze Covered Silver Vein")
+Node("iron", "Iron Deposit")
+Node("gold", "Gold Vein")
+Node("goldOoze", "Ooze Covered Gold Vein")
+Node("mithril", "Mithril Deposit")
+Node("mithrilOoze", "Ooze Covered Mithril Deposit")
+Node("truesilver", "Truesilver Deposit")
+Node("truesilverOoze", "Ooze Covered Truesilver Deposit")
+Node("darkiron", "Dark Iron Deposit")
+Node("smallthorium", "Small Thorium Vein")
+Node("thoriumOoze", "Ooze Covered Thorium Vein")
+Node("richthorium", "Rich Thorium Vein")
+Node("heavythorium", "Heavy Thorium Vein")
+Node("richthoriumOoze", "Ooze Covered Rich Thorium Vein")
 L["Reset all settings"] = "Reset all settings"
 L["Reset all settings?"] = "Reset every FieldGuide setting to its default value?"
 L["Settings reset."] = "Settings reset."
@@ -209,7 +217,7 @@ L["Reagents needed"] = "Reagents needed"
 L["Label the reagents in recipe tooltips"] = "Label the reagents in recipe tooltips"
 L["All factions"] = "All factions"
 L["No vendor for this faction."] = "No vendor for this faction."
-L["NODE_incendicite"] = "Incendicite Mineral Vein"
-L["NODE_bloodstone"] = "Lesser Bloodstone Deposit"
-L["NODE_indurium"] = "Indurium Mineral Vein"
-L["NODE_hakkarithorium"] = "Hakkari Thorium Vein"
+Node("incendicite", "Incendicite Mineral Vein")
+Node("bloodstone", "Lesser Bloodstone Deposit")
+Node("indurium", "Indurium Mineral Vein")
+Node("hakkarithorium", "Hakkari Thorium Vein")

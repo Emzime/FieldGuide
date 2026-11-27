@@ -403,7 +403,16 @@ end
 function Data:Name(r)
     if r.type == "skin" and r.minLvl then return L["Beasts level %d-%d"]:format(r.minLvl, r.maxLvl) end
     if r.type == "ore" and r.nodes then
-        local n = L["NODE_" .. r.nodes[1]]
+        local key = r.nodes[1]
+        local n = L["NODE_" .. key]
+        -- Node name not translated for this client: name learned while mining, else the ore's own name
+        if n == (ns.NODE_EN and ns.NODE_EN[key]) and not GetLocale():find("^en") then
+            local learned = ns.db and ns.db.global.learnedNodes[GetLocale()]
+            if learned then
+                for name, k in pairs(learned) do if k == r.key then return name end end
+            end
+            n = r.item and ns.GetItemInfo(r.item) or n
+        end
         if n and n ~= "" then return n end
     end
     return (r.item and ns.GetItemInfo(r.item)) or r.key

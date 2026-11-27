@@ -3,7 +3,7 @@
 ## Notes: Gathering field guide: skill tooltips, zones, progression, fishing and alerts.
 ## Notes-frFR: Guide de terrain pour la récolte : info-bulles de compétence, zones, progression, pêche et alertes.
 ## Author: Emzime
-## Version: @project-version@
+## Version: 1.0.0
 ## SavedVariables: FieldGuideDB
 ## OptionalDeps: ElvUI, Auctionator
 ## IconTexture: Interface\AddOns\FieldGuide\Media\Logo

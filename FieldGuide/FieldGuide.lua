@@ -13,6 +13,14 @@ ns.COLON = (loc == "frFR" and " : ") or ((loc == "zhCN" or loc == "zhTW") and "ï
 -- Addon textures (Media/*.tga)
 ns.MEDIA = "Interface\\AddOns\\" .. ADDON .. "\\Media\\"
 
+-- Version from the .toc (set from the tag by the release workflow)
+do
+    local getMeta = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
+    local v = getMeta and getMeta(ADDON, "Version")
+    if not v or v == "" or v:find("@", 1, true) then v = "1.0.0" end
+    ns.VERSION = v
+end
+
 ---------------------------------------------------------------------------
 -- API compatibility (Classic Era, TBC, MoP Classic, WoW Forever)
 ---------------------------------------------------------------------------

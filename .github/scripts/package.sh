@@ -26,8 +26,8 @@ git ls-files -- "$ADDON" | while IFS= read -r file; do
     cp "$file" "$OUT/$file"
 done
 
-# Version from the tag
-sed -i "s/@project-version@/${VERSION}/g" "$OUT/$ADDON/$ADDON.toc"
+# Version from the tag (overrides the version written in the .toc)
+sed -i "s/@project-version@/${VERSION}/g; s/^## Version:.*/## Version: ${VERSION}/" "$OUT/$ADDON/$ADDON.toc"
 if grep -rq "@project-version@" "$OUT/$ADDON"; then
     echo "error: @project-version@ left in the package" >&2
     exit 1

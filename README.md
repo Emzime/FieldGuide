@@ -51,9 +51,9 @@ Addon autonome (sans dépendance) pour les quatre métiers de récolte : **Herbo
 ### Utilisation
 
 - `/fg` ou `/fieldguide` : ouvre ou ferme la fenêtre.
-- `/fg options` : ouvre les options (info-bulles, alertes, minimap, fenêtre, réinitialisation).
+- `/fg options` : ouvre les options (info-bulles, alertes, minicarte, fenêtre, réinitialisation).
 - `/fg reset` : remet les statistiques de session à zéro.
-- Icône de minimap : **clic gauche** = fenêtre, **clic droit** = options, **glisser** = déplacer l'icône.
+- Icône de la minicarte : **clic gauche** = fenêtre, **clic droit** = options, **glisser** = déplacer l'icône.
 
 ### Compatibilité
 

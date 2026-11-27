@@ -293,7 +293,12 @@ function Window:Create()
     local title = Text(header, 18)
     self.title = title
     title:SetPoint("LEFT", icon, "RIGHT", 8, 0)
-    title:SetText("Field|cff3aa0e8Guide|r |cffa3a3a3· " .. L["Field guide"] .. "|r")
+    title:SetText("Field|cff3aa0e8Guide|r |cffa3a3a3- " .. L["Field guide"] .. "|r")
+    -- Version in a smaller font, on the title baseline
+    local version = Text(header, 11, { 0.48, 0.48, 0.48 })
+    self.version = version
+    version:SetPoint("BOTTOMLEFT", title, "BOTTOMRIGHT", 6, 1)
+    version:SetText("v" .. ns.VERSION)
 
     local close = Box(header, 0.1, 0.1, 0.1, 1, "Button")
     close:SetSize(26, 26)
@@ -1157,13 +1162,14 @@ end
 -- Header: drop the subtitle, then the session box, when the title would overlap them
 function Window:LayoutHeader()
     if not self.title then return end
-    local full = "Field|cff3aa0e8Guide|r |cffa3a3a3· " .. L["Field guide"] .. "|r"
+    local short = "Field|cff3aa0e8Guide|r"
+    local full = short .. " |cffa3a3a3- " .. L["Field guide"] .. "|r"
     self.title:SetText(full)
     local free = self.frame:GetWidth() - 110
     local sessionOn = ns.db.profile.window.session
-    local sw = sessionOn and self.session:GetWidth() or 0
+    local sw = (sessionOn and self.session:GetWidth() or 0) + (self.version:GetStringWidth() or 0) + 6
     if self.title:GetStringWidth() + sw > free then
-        self.title:SetText("Field|cff3aa0e8Guide|r")
+        self.title:SetText(short)
     end
     if sessionOn then
         self.session:SetShown(self.title:GetStringWidth() + sw <= free)
