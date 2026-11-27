@@ -25,8 +25,8 @@ Addon autonome (sans dépendance) pour les quatre métiers de récolte : **Herbo
 
 - Toutes les **herbes**, les **gisements**, les **tranches de bêtes** et les **poissons**, triés par niveau puis par ordre alphabétique, avec une recherche.
 - **Filtres** : métier, continent (Est, Kalimdor), « Récoltable », « Sans le gris », « Ma zone », faction (Alliance, Horde). Ils sont gardés d'une session à l'autre, par personnage.
-- **Fiche détaillée** : compétence requise, votre niveau, gain de points, ce que ça donne (herbes, minerais, pierres, gemmes, cuirs, plat cuisiné pour les poissons) et les zones, cliquables pour ouvrir la carte du monde.
-- **Recettes et où les obtenir** : tous les vendeurs, classés selon votre faction, avec leur position ; un clic ouvre la carte et pose une épingle sur le vendeur.
+- **Fiche détaillée** : compétence requise, votre niveau, gain de points, ce que ça donne (herbes, minerais, pierres, gemmes, cuirs, plat cuisiné pour les poissons) et les zones où la trouver.
+- **Recettes et où les obtenir** : tous les vendeurs, classés selon votre faction, avec leur position ; un clic pose un repère sur la carte.
 - **Pêche** : moment de la journée, saison, leurre conseillé, et explication des zones à 330 (compétence 300 + bonus de canne et de leurre).
 - **Cuirs et écailles spéciaux** : cuir de diablosaure, de sabre-de-givre, de chimère, écailles de dragon, carapaces silithides… ainsi que les dépeçages de raid au-delà de 300 (cuir du Magma, écaille d'Onyxia, écaille de rêve…), avec les bonus disponibles sur Forever.
 - **Quête de Nat Pagle** : les quatre poissons de la quête Artisan avec leur point de pêche, le statut de la quête, les poissons déjà attrapés et une alerte en entrant dans la bonne zone.
@@ -78,8 +78,8 @@ Standalone addon (no dependency) for the four gathering professions: **Herbalism
 
 - Every **herb**, **ore vein**, **creature level range** and **fish**, sorted by level then alphabetically, with a search box.
 - **Filters**: profession, continent (East, Kalimdor), "Harvestable", "No grey", "My zone", faction (Alliance, Horde). They are kept between sessions, per character.
-- **Detail panel**: required skill, your skill, skill gain, what it gives (herbs, ores, stones, gems, leather, cooked dish for fish) and the zones, clickable to open the world map.
-- **Recipes and where to get them**: every vendor, sorted by your faction, with their position; a click opens the map and drops a pin on the vendor.
+- **Detail panel**: required skill, your skill, skill gain, what it gives (herbs, ores, stones, gems, leather, cooked dish for fish) and the zones where to find it.
+- **Recipes and where to get them**: every vendor, sorted by your faction, with their position; a click drops a pin on the map.
 - **Fishing**: time of day, season, recommended lure, and an explanation of the 330 zones (skill 300 + pole and lure bonuses).
 - **Special leathers and scales**: Devilsaur, Frostsaber and Chimera leather, dragonscales, silithid carapaces… plus the raid skins above 300 (Core Leather, Scale of Onyxia, Dreamscale…), with the bonuses available in Forever.
 - **Nat Pagle quest**: the four fish of the Artisan quest with their fishing spot, the quest status, the fish already caught and an alert when you enter the right zone.

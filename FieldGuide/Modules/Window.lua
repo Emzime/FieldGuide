@@ -464,14 +464,8 @@ function Window:Create()
         c.zone.text = Text(c.zone, 12, MUTED)
         c.zone.text:SetPoint("LEFT", 15, 0)
         c.zone.text:SetPoint("RIGHT")
-        c.zone:SetScript("OnClick", function(self)
-            if self.mapID then
-                ns.OpenMap(self.mapID)
-                Window:MapStatus(self.mapID)
-            end
-        end)
-        c.zone:SetScript("OnEnter", function(self) self.text:SetTextColor(A[1], A[2], A[3]) end)
-        c.zone:SetScript("OnLeave", function(self) self.text:SetTextColor(MUTED[1], MUTED[2], MUTED[3]) end)
+        -- Zone only, no coordinates: nothing to pin, so the line is not clickable
+        c.zone:EnableMouse(false)
         -- One alert line (all alerts are listed in the card tooltip)
         c.alertBtn = CreateFrame("Button", nil, c)
         c.alertBtn:SetPoint("TOPLEFT", 10, -70)
@@ -482,10 +476,7 @@ function Window:Create()
         c.alert:SetPoint("RIGHT")
         c.alertBtn:SetScript("OnClick", function(self)
             local loc = self.loc
-            if loc then
-                ns.OpenMap(loc[2], loc[3], loc[4])
-                Window:MapStatus(loc[2])
-            end
+            if loc then Window:PinStatus(loc[2], loc[3], loc[4], ns.PlacePin(loc[2], loc[3], loc[4])) end
         end)
         -- Clickable reminder: "Artisan :" stays blue, the rest looks like the zone line (grey, accent on hover)
         function c.alertBtn:Render(hover)
@@ -738,7 +729,7 @@ local function NewRecipeRow(parent)
     return b
 end
 
--- One vendor (or drop zone): click opens the world map on its zone
+-- One vendor (or drop zone): click places a map pin when its position is known
 local function NewVendorRow(parent)
     local b = CreateFrame("Button", nil, parent, TEMPLATE)
     b:SetBackdrop({ bgFile = WHITE })
@@ -750,9 +741,8 @@ local function NewVendorRow(parent)
     b.text:SetPoint("LEFT", 22, 0)
     b.text:SetPoint("RIGHT", -6, 0)
     b:SetScript("OnClick", function(self)
-        if self.mapID then
-            ns.OpenMap(self.mapID, self.x, self.y)
-            Window:MapStatus(self.mapID)
+        if self.mapID and self.x then
+            Window:PinStatus(self.mapID, self.x, self.y, ns.PlacePin(self.mapID, self.x, self.y))
         end
     end)
     b:SetScript("OnEnter", function(self) self:SetBackdropColor(0.15, 0.15, 0.15, 1) end)
@@ -780,13 +770,8 @@ local function NewZone(parent)
     b.info = Text(b, 12, MUTED)
     b.info:SetPoint("TOPLEFT", 10, -21)
     b.info:SetPoint("RIGHT", -30, 0)
-    b.map = Icon(b, "Map", 16, A)
-    b.map:SetPoint("RIGHT", -10, 0)
-    b:SetScript("OnClick", function(self)
-        ns.OpenMap(self.mapID)
-        Window:MapStatus(self.mapID)
-    end)
-    HoverBorder(b)
+    -- Zone only, no coordinates: nothing to pin, so the box is not clickable
+    b:EnableMouse(false)
     return b
 end
 
@@ -1277,11 +1262,13 @@ function Window:UpdateProgression()
 end
 
 -- "Map opened" message: cleared as soon as the world map is closed
-function Window:MapStatus(mapID)
-    if type(mapID) ~= "number" then return end
-    state.status = L["Map opened: %s"]:format(ns.ZoneName(mapID))
+function Window:PinStatus(mapID, x, y, placed)
+    if not placed then return end
+    local where = ns.ZoneName(mapID) .. (" (%.1f, %.1f)"):format(x, y)
+    state.status = L["Map pin placed: %s. Open the map to see it."]:format(where)
     if WorldMapFrame and not self.mapHooked then
         self.mapHooked = true
+        -- HookScript only adds a post-hook: it does not taint the map
         WorldMapFrame:HookScript("OnHide", function()
             if state.status then
                 state.status = nil

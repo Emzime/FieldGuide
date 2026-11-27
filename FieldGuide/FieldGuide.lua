@@ -173,23 +173,19 @@ function ns.CurrentZone()
 end
 
 -- Optional x, y (0-100): also drop a map pin there when the client supports user waypoints
-function ns.OpenMap(mapID, x, y)
-    if type(mapID) ~= "number" then return end
-    if x and y and C_Map and C_Map.SetUserWaypoint and UiMapPoint and UiMapPoint.CreateFromCoordinates then
-        pcall(function()
-            if C_Map.CanSetUserWaypointOnMap and not C_Map.CanSetUserWaypointOnMap(mapID) then return end
-            C_Map.SetUserWaypoint(UiMapPoint.CreateFromCoordinates(mapID, x / 100, y / 100))
-            if C_SuperTrack and C_SuperTrack.SetSuperTrackedUserWaypoint then C_SuperTrack.SetSuperTrackedUserWaypoint(true) end
-        end)
-    end
-    if OpenWorldMap then
-        OpenWorldMap(mapID)
-    elseif WorldMapFrame then
-        if not WorldMapFrame:IsShown() then ToggleWorldMap() end
-        WorldMapFrame:SetMapID(mapID)
-    end
-    -- Make sure the map is drawn above the FieldGuide window
-    if WorldMapFrame and WorldMapFrame.Raise then WorldMapFrame:Raise() end
+-- Map pin: a user waypoint, super-tracked. The world map is never opened from here:
+-- opening it from addon code taints the map canvas, and Blizzard then blocks its pins
+-- (ADDON_ACTION_BLOCKED "SetPassThroughButtons") the next time the player opens the map.
+function ns.PlacePin(mapID, x, y)
+    if type(mapID) ~= "number" or not (x and y) then return false end
+    if not (C_Map and C_Map.SetUserWaypoint and UiMapPoint and UiMapPoint.CreateFromCoordinates) then return false end
+    local ok, placed = pcall(function()
+        if C_Map.CanSetUserWaypointOnMap and not C_Map.CanSetUserWaypointOnMap(mapID) then return false end
+        C_Map.SetUserWaypoint(UiMapPoint.CreateFromCoordinates(mapID, x / 100, y / 100))
+        if C_SuperTrack and C_SuperTrack.SetSuperTrackedUserWaypoint then C_SuperTrack.SetSuperTrackedUserWaypoint(true) end
+        return true
+    end)
+    return ok and placed or false
 end
 
 -- Quest state helpers (work on clients with or without C_QuestLog)
