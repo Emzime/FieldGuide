@@ -17,6 +17,8 @@ local Z = {
     TELDRASSIL = 1438, DARKSHORE = 1439, ASHENVALE = 1440, NEEDLES = 1441, STONETALON = 1442,
     DESOLACE = 1443, FERALAS = 1444, DUSTWALLOW = 1445, TANARIS = 1446, AZSHARA = 1447, FELWOOD = 1448,
     UNGORO = 1449, MOONGLADE = 1450, SILITHUS = 1451, WINTERSPRING = 1452,
+    HYJAL = 2482, -- Forever: Mount Hyjal (uiMapID given by the user, to confirm in game)
+    RIVERGLADES = "RIVERGLADES", -- Forever: Riverglades (Eastern Kingdoms), uiMapID not known yet
 }
 Data.Z = Z
 
@@ -24,7 +26,7 @@ Data.KALIMDOR_ID, Data.EASTERN_ID = 1414, 1415
 local KALIMDOR = {}
 for _, id in ipairs({ Z.DUROTAR, Z.MULGORE, Z.BARRENS, Z.TELDRASSIL, Z.DARKSHORE, Z.ASHENVALE, Z.NEEDLES,
     Z.STONETALON, Z.DESOLACE, Z.FERALAS, Z.DUSTWALLOW, Z.TANARIS, Z.AZSHARA, Z.FELWOOD, Z.UNGORO,
-    Z.MOONGLADE, Z.SILITHUS, Z.WINTERSPRING, 1454, 1456, 1457 }) do KALIMDOR[id] = true end
+    Z.MOONGLADE, Z.SILITHUS, Z.WINTERSPRING, Z.HYJAL, 1454, 1456, 1457 }) do KALIMDOR[id] = true end
 
 function Data.Continent(mapID)
     if KALIMDOR[mapID] then return "KA" end
@@ -43,6 +45,7 @@ Data.ZoneLevels = {
     [Z.SEARING] = { 43, 50 }, [Z.AZSHARA] = { 45, 55 }, [Z.BLASTED] = { 45, 55 }, [Z.UNGORO] = { 48, 55 },
     [Z.FELWOOD] = { 48, 55 }, [Z.BURNING] = { 50, 58 }, [Z.WPL] = { 51, 58 }, [Z.EPL] = { 53, 60 },
     [Z.WINTERSPRING] = { 53, 60 }, [Z.SILITHUS] = { 55, 60 }, [Z.MOONGLADE] = { 55, 60 },
+    [Z.HYJAL] = { 55, 60 }, [Z.RIVERGLADES] = { 36, 44 },
 }
 
 -- Minimum fishing skill to fish a zone without losing catches
@@ -66,6 +69,10 @@ local GEM = {
     diamond = 12800, arcane = 12363,
 }
 local STONE = { rough = 2835, coarse = 2836, heavy = 2838, solid = 7912, dense = 12365 }
+-- Rare secondary loot from ore nodes (Forever data): Pyrite is a Forever "Scarce" material
+local RARE = { pyrite = 249391, blackVitriol = 9262, bloodMountain = 11382, blackDiamond = 11754 }
+-- Forever "Scarce" herb material, from Earthroot, Mageroyal, Briarthorn, Bruiseweed and Kingsblood
+local FRILLED_LICHEN = 249399
 
 -- Tools: any of these items satisfies the requirement
 Data.Tools = {
@@ -95,14 +102,14 @@ local function add(t) R[#R + 1] = t end
 -- Herbs (node name = item name) - zones from Icy Veins' WoW Forever herbalism table
 add({ key = "peacebloom", type = "herb", req = 1, item = 2447, zones = { Z.MULGORE, Z.TIRISFAL, Z.TELDRASSIL, Z.DUROTAR, Z.BARRENS, Z.DUNMOROGH, Z.ELWYNN } })
 add({ key = "silverleaf", type = "herb", req = 1, item = 765, zones = { Z.MULGORE, Z.TIRISFAL, Z.ELWYNN, Z.TELDRASSIL, Z.DUNMOROGH, Z.BARRENS, Z.DUROTAR } })
-add({ key = "earthroot", type = "herb", req = 15, item = 2449, zones = { Z.MULGORE, Z.BARRENS, Z.TIRISFAL, Z.TELDRASSIL, Z.DUNMOROGH, Z.ELWYNN, Z.DUROTAR } })
-add({ key = "mageroyal", type = "herb", req = 50, item = 785, extra = { 2452 }, zones = { Z.BARRENS, Z.SILVERPINE, Z.LOCHMODAN, Z.WESTFALL, Z.REDRIDGE } })
-add({ key = "briarthorn", type = "herb", req = 70, item = 2450, extra = { 2452 }, zones = { Z.BARRENS, Z.DUSKWOOD, Z.SILVERPINE, Z.REDRIDGE, Z.WESTFALL } })
+add({ key = "earthroot", type = "herb", req = 15, item = 2449, extra = { FRILLED_LICHEN }, zones = { Z.MULGORE, Z.BARRENS, Z.TIRISFAL, Z.TELDRASSIL, Z.DUNMOROGH, Z.ELWYNN, Z.DUROTAR } })
+add({ key = "mageroyal", type = "herb", req = 50, item = 785, extra = { 2452, FRILLED_LICHEN }, zones = { Z.BARRENS, Z.SILVERPINE, Z.LOCHMODAN, Z.WESTFALL, Z.REDRIDGE } })
+add({ key = "briarthorn", type = "herb", req = 70, item = 2450, extra = { 2452, FRILLED_LICHEN }, zones = { Z.BARRENS, Z.DUSKWOOD, Z.SILVERPINE, Z.REDRIDGE, Z.WESTFALL } })
 add({ key = "stranglekelp", type = "herb", req = 85, item = 3820, zones = { Z.WETLANDS, Z.STV, Z.ASHENVALE, Z.DESOLACE, Z.WESTFALL } })
-add({ key = "bruiseweed", type = "herb", req = 100, item = 2453, zones = { Z.STONETALON, Z.BARRENS, Z.ASHENVALE, Z.DUSKWOOD, Z.REDRIDGE } })
+add({ key = "bruiseweed", type = "herb", req = 100, item = 2453, extra = { FRILLED_LICHEN }, zones = { Z.STONETALON, Z.BARRENS, Z.ASHENVALE, Z.DUSKWOOD, Z.REDRIDGE } })
 add({ key = "steelbloom", type = "herb", req = 115, item = 3355, zones = { Z.STV, Z.STONETALON, Z.ARATHI, Z.WETLANDS, Z.NEEDLES } })
 add({ key = "gravemoss", type = "herb", req = 120, item = 3369, zones = { Z.DESOLACE, Z.DUSKWOOD } })
-add({ key = "kingsblood", type = "herb", req = 125, item = 3356, zones = { Z.STV, Z.WETLANDS, Z.HILLSBRAD, Z.ASHENVALE, Z.STONETALON } })
+add({ key = "kingsblood", type = "herb", req = 125, item = 3356, extra = { FRILLED_LICHEN }, zones = { Z.STV, Z.WETLANDS, Z.HILLSBRAD, Z.ASHENVALE, Z.STONETALON } })
 add({ key = "liferoot", type = "herb", req = 150, item = 3357, zones = { Z.DUSTWALLOW, Z.STV, Z.SWAMP, Z.WETLANDS, Z.ALTERAC, Z.DESOLACE } })
 add({ key = "fadeleaf", type = "herb", req = 160, item = 3818, zones = { Z.DUSTWALLOW, Z.STV, Z.ARATHI, Z.ALTERAC, Z.SWAMP } })
 add({ key = "goldthorn", type = "herb", req = 170, item = 3821, zones = { Z.STV, Z.FERALAS, Z.ARATHI, Z.DUSTWALLOW, Z.SWAMP } })
@@ -114,20 +121,22 @@ add({ key = "arthastears", type = "herb", req = 220, item = 8836, zones = { Z.EP
 add({ key = "sungrass", type = "herb", req = 230, item = 8838, zones = { Z.FERALAS, Z.AZSHARA, Z.HINTERLANDS, Z.UNGORO, Z.WPL } })
 add({ key = "blindweed", type = "herb", req = 235, item = 8839, zones = { Z.SWAMP, Z.UNGORO } })
 add({ key = "ghostmushroom", type = "herb", req = 245, item = 8845, zones = { Z.HINTERLANDS } })
-add({ key = "gromsblood", type = "herb", req = 250, item = 8846, zones = { Z.FELWOOD, Z.BLASTED, Z.DESOLACE } })
+add({ key = "gromsblood", type = "herb", req = 250, item = 8846, zones = { Z.FELWOOD, Z.BLASTED, Z.DESOLACE, Z.ASHENVALE } })
 add({ key = "goldensansam", type = "herb", req = 260, item = 13464, zones = { Z.AZSHARA, Z.UNGORO, Z.EPL, Z.FELWOOD, Z.BURNING } })
 add({ key = "dreamfoil", type = "herb", req = 270, item = 13463, zones = { Z.AZSHARA, Z.EPL, Z.UNGORO, Z.FELWOOD, Z.BURNING, Z.SILITHUS, Z.WPL } })
 add({ key = "silversage", type = "herb", req = 280, item = 13465, zones = { Z.WINTERSPRING, Z.EPL, Z.AZSHARA, Z.UNGORO, Z.BURNING } })
 add({ key = "plaguebloom", type = "herb", req = 285, item = 13466, zones = { Z.EPL, Z.WPL, Z.FELWOOD } })
 add({ key = "icecap", type = "herb", req = 290, item = 13467, zones = { Z.WINTERSPRING } })
 add({ key = "blacklotus", type = "herb", req = 300, item = 13468, zones = { Z.BURNING, Z.SILITHUS, Z.WINTERSPRING, Z.EPL } })
+-- Forever: Demonsage (248821), found in Mount Hyjal. Skill requirement not published yet (300 assumed, like the zone's Heavy Thorium)
+add({ key = "demonsage", type = "herb", req = 300, item = 248821, zones = { Z.HYJAL } })
 
 -- Ores
-add({ key = "copper", type = "ore", req = 1, nodes = { "copper" }, item = 2770, extra = { STONE.rough, GEM.malachite, GEM.tigerseye, GEM.shadowgem },
+add({ key = "copper", type = "ore", req = 1, nodes = { "copper" }, item = 2770, extra = { STONE.rough, GEM.malachite, GEM.tigerseye, GEM.shadowgem, RARE.pyrite },
     zones = { Z.ELWYNN, Z.DUNMOROGH, Z.TIRISFAL, Z.DUROTAR, Z.MULGORE, Z.DARKSHORE, Z.WESTFALL, Z.LOCHMODAN, Z.SILVERPINE, Z.BARRENS, Z.REDRIDGE, Z.DUSKWOOD, Z.WETLANDS, Z.ASHENVALE, Z.STONETALON, Z.HILLSBRAD } })
-add({ key = "tin", type = "ore", req = 65, nodes = { "tin" }, item = 2771, extra = { STONE.coarse, GEM.shadowgem, GEM.mossAgate, GEM.moonstone, GEM.jade },
+add({ key = "tin", type = "ore", req = 65, nodes = { "tin" }, item = 2771, extra = { STONE.coarse, GEM.shadowgem, GEM.mossAgate, GEM.moonstone, GEM.jade, RARE.pyrite },
     zones = { Z.LOCHMODAN, Z.SILVERPINE, Z.BARRENS, Z.REDRIDGE, Z.DUSKWOOD, Z.WETLANDS, Z.HILLSBRAD, Z.ASHENVALE, Z.STONETALON, Z.DARKSHORE, Z.NEEDLES, Z.ARATHI, Z.STV, Z.DESOLACE } })
-add({ key = "silver", type = "ore", req = 75, nodes = { "silver", "silverOoze" }, item = 2775, extra = { STONE.coarse },
+add({ key = "silver", type = "ore", req = 75, nodes = { "silver", "silverOoze" }, item = 2775, extra = { STONE.coarse, GEM.mossAgate, GEM.shadowgem, GEM.moonstone },
     zones = { Z.LOCHMODAN, Z.SILVERPINE, Z.BARRENS, Z.REDRIDGE, Z.DUSKWOOD, Z.WETLANDS, Z.HILLSBRAD, Z.ASHENVALE, Z.STONETALON, Z.NEEDLES, Z.ARATHI, Z.STV, Z.DESOLACE } })
 add({ key = "incendicite", type = "ore", req = 65, nodes = { "incendicite" }, item = 3340, zones = { Z.WETLANDS } })
 add({ key = "bloodstone", type = "ore", req = 75, nodes = { "bloodstone" }, item = 4278, zones = { Z.ARATHI } })
@@ -136,33 +145,40 @@ add({ key = "iron", type = "ore", req = 125, nodes = { "iron" }, item = 2772, ex
 add({ key = "indurium", type = "ore", req = 150, nodes = { "indurium" }, item = 5833, zones = { Z.BADLANDS } })
 add({ key = "gold", type = "ore", req = 155, nodes = { "gold", "goldOoze" }, item = 2776, extra = { GEM.jade, GEM.citrine, GEM.moonstone },
     zones = { Z.ARATHI, Z.STV, Z.DESOLACE, Z.NEEDLES, Z.ALTERAC, Z.BADLANDS, Z.HINTERLANDS, Z.TANARIS, Z.SEARING, Z.FERALAS, Z.UNGORO, Z.AZSHARA } })
-add({ key = "mithril", type = "ore", req = 175, nodes = { "mithril", "mithrilOoze" }, item = 3858, extra = { STONE.solid, GEM.citrine, GEM.aquamarine, GEM.starRuby },
+add({ key = "mithril", type = "ore", req = 175, nodes = { "mithril", "mithrilOoze" }, item = 3858, extra = { STONE.solid, GEM.citrine, GEM.aquamarine, GEM.starRuby, RARE.blackVitriol },
     zones = { Z.HINTERLANDS, Z.SEARING, Z.BADLANDS, Z.TANARIS, Z.FERALAS, Z.AZSHARA, Z.FELWOOD, Z.BURNING, Z.UNGORO, Z.BLASTED, Z.STV, Z.ALTERAC, Z.SWAMP, Z.DUSTWALLOW, Z.DESOLACE, Z.WPL, Z.EPL, Z.WINTERSPRING, Z.SILITHUS } })
 add({ key = "truesilver", type = "ore", req = 230, nodes = { "truesilver", "truesilverOoze" }, item = 7911, extra = { GEM.citrine, GEM.aquamarine, GEM.starRuby },
     zones = { Z.HINTERLANDS, Z.SEARING, Z.BADLANDS, Z.TANARIS, Z.FERALAS, Z.AZSHARA, Z.FELWOOD, Z.BURNING, Z.UNGORO, Z.BLASTED, Z.STV, Z.ALTERAC, Z.SWAMP, Z.WPL, Z.EPL, Z.WINTERSPRING, Z.SILITHUS } })
-add({ key = "darkiron", type = "ore", req = 230, nodes = { "darkiron" }, item = 11370, zones = { Z.SEARING, Z.BURNING } })
-add({ key = "smallthorium", type = "ore", req = 245, nodes = { "smallthorium", "thoriumOoze" }, item = 10620, extra = { STONE.dense, GEM.starRuby, GEM.sapphire, GEM.opal, GEM.emerald, GEM.diamond },
+add({ key = "darkiron", type = "ore", req = 230, nodes = { "darkiron" }, item = 11370, extra = { RARE.blackVitriol, RARE.bloodMountain, RARE.blackDiamond }, zones = { Z.SEARING, Z.BURNING } })
+add({ key = "smallthorium", type = "ore", req = 245, nodes = { "smallthorium", "thoriumOoze" }, item = 10620, extra = { STONE.dense, GEM.starRuby, GEM.sapphire, GEM.opal, GEM.emerald, GEM.diamond, RARE.blackVitriol },
     zones = { Z.UNGORO, Z.BURNING, Z.WINTERSPRING, Z.SILITHUS, Z.FELWOOD, Z.AZSHARA, Z.WPL, Z.EPL, Z.BLASTED, Z.SEARING, Z.TANARIS, Z.FERALAS, Z.HINTERLANDS } })
 add({ key = "hakkarithorium", type = "ore", req = 245, nodes = { "hakkarithorium" }, item = 10620, zones = { Z.STV } })
 add({ key = "richthorium", type = "ore", req = 275, nodes = { "richthorium", "richthoriumOoze" }, item = 10620, extra = { STONE.dense, GEM.starRuby, GEM.sapphire, GEM.opal, GEM.emerald, GEM.diamond, GEM.arcane },
     zones = { Z.UNGORO, Z.BURNING, Z.WINTERSPRING, Z.SILITHUS, Z.EPL, Z.FELWOOD, Z.AZSHARA } })
+-- Forever: Heavy Thorium Vein, Scourge area of Mount Hyjal (ore 248815)
+add({ key = "heavythorium", type = "ore", req = 300, nodes = { "heavythorium" }, item = 248815, extra = { STONE.dense }, zones = { Z.HYJAL } })
 
 -- Skinning brackets (creature level -> leather)
-local function skin(key, lo, hi, req, gives)
-    add({ key = key, type = "skin", req = req, minLvl = lo, maxLvl = hi, gives = gives })
+local function skin(key, lo, hi, req, gives, extra)
+    add({ key = key, type = "skin", req = req, minLvl = lo, maxLvl = hi, gives = gives, extra = extra })
 end
+-- Forever "Scarce" leathers, random skinning loot (also sold in Brightwater):
+-- Pristine Leather (249427, item level 25) reported on beasts around level 13-25 (Westfall, Loch Modan, The Barrens)
+-- Pristine Hide (249428, item level 45) placed by item level on beasts 30-50 (no creature list published yet)
+local PRISTINE_LEATHER, PRISTINE_HIDE = 249427, 249428
 skin("skin10", 1, 10, 1, { 2934, 2318, 783 })
-skin("skin20", 10, 20, 100, { 2318, 783, 2319 })
-skin("skin30", 20, 30, 150, { 2319, 4232, 4234 })
-skin("skin40", 30, 40, 200, { 4234, 4235, 4304 })
-skin("skin50", 40, 50, 250, { 4304, 8169, 8170 })
+skin("skin20", 10, 20, 100, { 2318, 783, 2319 }, { PRISTINE_LEATHER })
+skin("skin30", 20, 30, 150, { 2319, 4232, 4234 }, { PRISTINE_LEATHER })
+skin("skin40", 30, 40, 200, { 4234, 4235, 4304 }, { PRISTINE_HIDE })
+skin("skin50", 40, 50, 250, { 4304, 8169, 8170 }, { PRISTINE_HIDE })
 skin("skin60", 50, 60, 300, { 8170, 8171 })
 
 -- Special leathers and scales: lowest skill of the creatures that give them (Forever data, Classic rule)
 -- where = { { instance uiMapID, English fallback, boss or creature }, ... } for dungeon/raid sources
 local INST = { WC = { 279, "Wailing Caverns" }, ST = { 220, "Sunken Temple" }, BRS = { 250, "Blackrock Spire" },
     MC = { 232, "Molten Core" }, BWL = { 287, "Blackwing Lair" }, ONY = { 248, "Onyxia's Lair" },
-    ZG = { 233, "Zul'Gurub" }, AQ20 = { 247, "Ruins of Ahn'Qiraj" } }
+    ZG = { 233, "Zul'Gurub" }, AQ20 = { 247, "Ruins of Ahn'Qiraj" },
+    BFD = { 221, "Blackfathom Deeps" }, DM = { 291, "The Deadmines" } }
 local function special(key, req, item, zones, where)
     add({ key = key, type = "skin", group = "special", req = req, item = item, zones = zones, where = where })
 end
@@ -170,14 +186,14 @@ special("blackwhelp", 70, 7286, { Z.REDRIDGE })
 special("deviatescale", 100, 6470, { Z.BARRENS }, { { INST.WC } })
 special("perfectdeviate", 100, 6471, { Z.BARRENS }, { { INST.WC } })
 special("redwhelp", 115, 7287, { Z.WETLANDS })
-special("turtlescale", 160, 8167, { Z.TANARIS, Z.HINTERLANDS })
+special("turtlescale", 160, 8167, { Z.TANARIS, Z.HINTERLANDS, Z.DUSTWALLOW })
 special("greenwhelp", 170, 7392, { Z.SWAMP })
 special("shadowcat", 185, 7428, { Z.STV, Z.SWAMP })
 special("scorpidscale", 200, 8154, { Z.TANARIS, Z.BLASTED })
-special("worndragonscale", 205, 8165, { Z.BURNING }, { { INST.BRS } })
+special("worndragonscale", 205, 8165, { Z.BURNING, Z.WINTERSPRING }, { { INST.BRS }, { INST.ST } })
 special("greendragonscale", 205, 15412, { Z.SWAMP }, { { INST.ST }, { INST.BRS } })
 special("chimera", 245, 15423, { Z.WINTERSPRING, Z.AZSHARA })
-special("bluedragonscale", 250, 15415, { Z.WINTERSPRING }, { { INST.BRS } })
+special("bluedragonscale", 250, 15415, { Z.WINTERSPRING, Z.AZSHARA }, { { INST.BRS } })
 special("blackdragonscale", 250, 15416, { Z.BURNING }, { { INST.BRS } })
 special("warbear", 255, 15419, { Z.WINTERSPRING, Z.WPL, Z.FELWOOD })
 special("heavyscorpid", 260, 15408, { Z.SILITHUS, Z.BURNING }, { { INST.BRS } })
@@ -194,6 +210,16 @@ special("coreleather", 305, 17012, { Z.BURNING }, { { INST.MC, "CORE_HOUNDS", 30
 special("beasthide", 310, 12731, { Z.BURNING }, { { INST.BRS, "BEAST", 310 } })
 special("onyxiascale", 315, 15410, { Z.DUSTWALLOW }, { { INST.ONY, "Onyxia", 315 } })
 special("chromaticscale", 315, 12607, { Z.BURNING }, { { INST.BWL, "Chromaggus", 315 } })
+-- Forever Fel leathers, skinned from Mount Hyjal beasts (level 55-60): Fel Leather is the common drop (~45%), Felhide is rare (~3%)
+special("felleather", 275, 248825, { Z.HYJAL }, { { nil, "HYJAL_BEASTS", 275 } })
+special("felhide", 275, 248824, { Z.HYJAL }, { { nil, "HYJAL_BEASTS", 275 } })
+-- Shiny Fish Scales: skinned from murlocs, nagas, crustaceans and crawlers (level 19-44) and a few dungeon bosses
+special("shinyscales", 90, 17057, { Z.DARKSHORE, Z.ASHENVALE, Z.BARRENS, Z.WESTFALL, Z.REDRIDGE, Z.WETLANDS, Z.HILLSBRAD,
+    Z.ARATHI, Z.STV, Z.DESOLACE, Z.DUSTWALLOW, Z.SWAMP, Z.RIVERGLADES },
+    { { nil, "SCALE_MOBS", 90 }, { INST.BFD }, { INST.WC, "MUTANUS" }, { INST.DM, "COOKIE" } })
+
+-- Raid loot (no gathering skill needed): Elementium Ore drops in Blackwing Lair
+add({ key = "elementium", type = "ore", group = "raidloot", loot = true, req = 0, item = 18562, zones = { Z.BURNING }, where = { { INST.BWL } } })
 special("dreamscale", 315, 20381, { Z.DUSKWOOD, Z.ASHENVALE, Z.FERALAS, Z.HINTERLANDS }, { { nil, "Ysondre, Lethon, Emeriss, Taerar", 315 } })
 
 -- Fish (zones from Wowhead Forever "fishing locations", most caught first; vendors from Warcraft Wiki / wow.gg)
@@ -249,6 +275,19 @@ add({ key = "lochfrenzy", type = "fish", gives = { 6316 }, req = 1, item = 6317,
 -- Forever: Whimsyfin (new), recipe 251526 is a rare drop from Redridge Mountains mobs
 add({ key = "whimsyfin", type = "fish", gives = { 251525 }, req = 1, item = 251524, zones = { Z.REDRIDGE },
     recipe = { item = 251526, isRecipe = true, drop = Z.REDRIDGE } })
+-- Bought from vendors in Riverglades (no gathering skill needed; vendor name and position not known yet)
+local function buy(key, prof, item)
+    add({ key = key, type = prof, group = "vendor", loot = true, req = 0, item = item, zones = { Z.RIVERGLADES },
+        buy = { { nil, Z.RIVERGLADES } } })
+end
+buy("deathlotus", "herb", 248822)
+buy("stranglevine", "herb", 249274)
+buy("pitchblende", "ore", 249426)
+buy("buyleather", "skin", 249427)
+buy("buyhide", "skin", 249428)
+
+-- Darkshore Grouper (12238): fished in Darkshore, eaten as is
+add({ key = "darkshoregrouper", type = "fish", req = 1, item = 12238, zones = { Z.DARKSHORE } })
 add({ key = "deviate", type = "fish", gives = { 6657 }, req = 1, item = 6522, zones = { Z.BARRENS },
     recipe = { item = 6661, isRecipe = true, drop = Z.BARRENS } })
 add({ key = "catfish", type = "fish", gives = { 4593 }, req = 55, item = 6308, zones = { Z.ASHENVALE, Z.DUSTWALLOW, CITY.STORMWIND, Z.HILLSBRAD, Z.REDRIDGE, Z.STV, Z.DUSKWOOD, Z.ALTERAC, Z.STONETALON, Z.WETLANDS, CITY.ORGRIMMAR, CITY.IRONFORGE, CITY.DARNASSUS, CITY.THUNDERBLUFF, CITY.UNDERCITY },
@@ -285,8 +324,8 @@ add({ key = "mahimahi", type = "fish", group = "quest", quest = 6607, req = 225,
 add({ key = "sartheris", type = "fish", group = "quest", quest = 6607, req = 225, item = 16968, zones = { Z.DESOLACE }, spot = { map = Z.DESOLACE, x = 25.0, y = 77.0 } })
 add({ key = "sailfin", type = "fish", group = "quest", quest = 6607, req = 225, item = 16969, zones = { Z.STV }, spot = { map = Z.STV, x = 33.0, y = 32.0 } })
 
--- Forever: recipe 286153 is picked up from a cart in Deadwind Pass (52.35, 34.48). Mount Hyjal also has the fish (no mapID yet)
-add({ key = "armorfish", type = "fish", gives = { 286152 }, req = 205, item = 13890, zones = { Z.EPL, Z.DEADWIND, Z.FERALAS, Z.WINTERSPRING, Z.SILITHUS, Z.ALTERAC },
+-- Forever: recipe 286153 is picked up from a cart in Deadwind Pass (52.35, 34.48)
+add({ key = "armorfish", type = "fish", gives = { 286152 }, req = 205, item = 13890, zones = { Z.EPL, Z.DEADWIND, Z.FERALAS, Z.WINTERSPRING, Z.HYJAL, Z.SILITHUS, Z.ALTERAC },
     recipe = { item = 286153, isRecipe = true, object = { map = Z.DEADWIND, x = 52.35, y = 34.48 } } })
 
 ---------------------------------------------------------------------------
@@ -304,7 +343,7 @@ end
 function Data:Init()
     for _, r in ipairs(R) do
         self.byKey[r.key] = r
-        if r.item then
+        if r.item and not r.loot then
             self.byItem[r.item] = self.byItem[r.item] or r
             self.gatherItems[r.item] = true
             preload(r.item)
@@ -345,7 +384,7 @@ function Data:BuildNodeNames()
             local n = ns.GetItemInfo(r.item)
             if n then names[n] = r end
         elseif r.type == "ore" then
-            for _, k in ipairs(r.nodes) do
+            for _, k in ipairs(r.nodes or {}) do
                 local n = rawget(L, "NODE_" .. k) or L["NODE_" .. k]
                 if n and n ~= "" then names[n] = r end
             end
@@ -363,7 +402,7 @@ end
 -- Display name of a resource
 function Data:Name(r)
     if r.type == "skin" and r.minLvl then return L["Beasts level %d-%d"]:format(r.minLvl, r.maxLvl) end
-    if r.type == "ore" then
+    if r.type == "ore" and r.nodes then
         local n = L["NODE_" .. r.nodes[1]]
         if n and n ~= "" then return n end
     end

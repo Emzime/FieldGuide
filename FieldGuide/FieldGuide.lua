@@ -138,6 +138,8 @@ end
 ---------------------------------------------------------------------------
 local zoneNameCache = {}
 function ns.ZoneName(mapID)
+    -- Forever zones whose uiMapID is not known yet use a string key with a localized name
+    if type(mapID) == "string" then return L["ZONE_" .. mapID] end
     local n = zoneNameCache[mapID]
     if n then return n end
     local info = C_Map and C_Map.GetMapInfo and C_Map.GetMapInfo(mapID)
@@ -164,6 +166,7 @@ end
 
 -- Optional x, y (0-100): also drop a map pin there when the client supports user waypoints
 function ns.OpenMap(mapID, x, y)
+    if type(mapID) ~= "number" then return end
     if x and y and C_Map and C_Map.SetUserWaypoint and UiMapPoint and UiMapPoint.CreateFromCoordinates then
         pcall(function()
             if C_Map.CanSetUserWaypointOnMap and not C_Map.CanSetUserWaypointOnMap(mapID) then return end

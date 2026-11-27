@@ -194,8 +194,8 @@ local ACCENTS = {
     ["ú"] = "u", ["ñ"] = "n", ["ß"] = "ss", ["œ"] = "oe", ["É"] = "e", ["È"] = "e", ["Ê"] = "e", ["À"] = "a", ["Â"] = "a", ["Ç"] = "c",
     ["Î"] = "i", ["Ô"] = "o", ["Ö"] = "o", ["Ü"] = "u", ["Ä"] = "a",
 }
-local GROUP_ORDER = { special = 1, quest = 2 }
-local GROUP_LABEL = { special = "Special leathers and scales", quest = "Nat Pagle quest" }
+local GROUP_ORDER = { special = 1, quest = 2, raidloot = 3, vendor = 4 }
+local GROUP_LABEL = { special = "Special leathers and scales", quest = "Nat Pagle quest", raidloot = "Raid loot", vendor = "Sold by vendors" }
 
 local function SortKey(name)
     name = tostring(name or ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
@@ -207,7 +207,7 @@ local function Matches(r, q, here)
     if state.tab ~= "all" and r.type ~= state.tab then return false end
     if r.mobs then return q == "" or EntryName(r):lower():find(q, 1, true) end
     local rank = FG:EffSkill(r.type)
-    local band = ns.Band(r.req, rank, ns.Data:Thresholds(r))
+    local band = r.loot and "none" or ns.Band(r.req, rank, ns.Data:Thresholds(r))
     if state.harv and band == "red" then return false end
     if state.grey and band == "grey" then return false end
     local zones = ns.Data:Zones(r)
@@ -814,8 +814,8 @@ function Window:BuildDetail(r)
 
     local rank, max, mod = FG:Skill(r.type)
     local eff = FG:EffSkill(r.type)
-    local band = r.mobs and "orange" or ns.Band(r.req, eff, ns.Data:Thresholds(r))
-    local col = ns.BAND[band]
+    local band = r.mobs and "orange" or (r.loot and "grey") or ns.Band(r.req, eff, ns.Data:Thresholds(r))
+    local col = r.loot and { 0.95, 0.95, 0.95 } or ns.BAND[band]
 
     local typeFs = Acquire("title", function() return Text(content, 12, MUTED) end)
     typeFs:SetPoint("TOPLEFT", 16, -y)
@@ -861,7 +861,7 @@ function Window:BuildDetail(r)
 
     -- Stats
     local stats = {
-        { L["Required skill"], tostring(r.req), col },
+        { L["Required skill"], r.loot and L["None needed"] or tostring(r.req), r.loot and MUTED or col },
         { L["Your level"], rank and (rank .. "/" .. max .. ((mod and mod > 0) and (" |cff40c040+" .. mod .. "|r") or "")) or L["Not learned"], { 0.95, 0.95, 0.95 } },
         { L["Skill points"], L["GAIN_" .. band], col },
     }
@@ -904,6 +904,21 @@ function Window:BuildDetail(r)
             x = x + w + 6
         end
         y = y + 36
+    end
+
+    -- Vendor-only items: where to buy them
+    if r.buy then
+        y = SectionTitle(content, y, L["Where to buy"])
+        for _, v in ipairs(r.buy) do
+            local row = Acquire("vendor", function() return NewVendorRow(content) end)
+            row:SetPoint("TOPLEFT", 28, -y)
+            row:SetWidth(cw - 12)
+            row.mapID, row.x, row.y = v[2], v[3], v[4]
+            local coords = v[3] and ("  |cfff2f2f2" .. ("%.1f, %.1f"):format(v[3], v[4]) .. "|r") or ""
+            row.text:SetText("|cfff2f2f2" .. (v[1] or L["Vendor"]) .. "|r  |cffa3a3a3" .. ns.ZoneName(v[2]) .. "|r" .. coords)
+            y = y + 24
+        end
+        y = y + 8
     end
 
     -- Recipe, then one clickable line per vendor (player's faction first)
@@ -974,7 +989,9 @@ function Window:BuildDetail(r)
         y = y + math.max(18, math.ceil(hint:GetStringHeight() or 14) + 8)
     end
     if r.where then
-        y = SectionTitle(content, y, L["Dungeons and raids"])
+        local inst, open = false, false
+        for _, w in ipairs(r.where) do if w[1] then inst = true else open = true end end
+        y = SectionTitle(content, y, (inst and open and L["Creatures and dungeons"]) or (inst and L["Dungeons and raids"]) or L["Creatures"])
         for _, w in ipairs(r.where) do
             local row = Acquire("info", function() return NewInfoRow(content) end)
             row:SetPoint("TOPLEFT", 16, -y)
@@ -1042,7 +1059,7 @@ function Window:BuildDetail(r)
             info = L["Recorded by you"]
         elseif r.type == "skin" then
             local lv = ns.Data.ZoneLevels[id]
-            info = L["Level %s"]:format(lv[1] .. "-" .. lv[2])
+            info = lv and L["Level %s"]:format(lv[1] .. "-" .. lv[2]) or ""
         elseif r.type == "fish" then
             info = L["Fishing min. %d"]:format(math.max(ns.Data.FishZoneSkill[id] or 1, r.req))
         else
@@ -1255,6 +1272,7 @@ end
 
 -- "Map opened" message: cleared as soon as the world map is closed
 function Window:MapStatus(mapID)
+    if type(mapID) ~= "number" then return end
     state.status = L["Map opened: %s"]:format(ns.ZoneName(mapID))
     if WorldMapFrame and not self.mapHooked then
         self.mapHooked = true
@@ -1347,13 +1365,13 @@ function Window:Refresh(forceDetail)
         y = y + ROW_H
         row:SetPoint("RIGHT", child, "RIGHT", -6, 0)
         local rank = FG:EffSkill(r.type)
-        local band = r.mobs and "grey" or ns.Band(r.req, rank, ns.Data:Thresholds(r))
-        local c = ns.BAND[band]
+        local band = (r.mobs or r.loot) and "grey" or ns.Band(r.req, rank, ns.Data:Thresholds(r))
+        local c = r.loot and { 0.95, 0.95, 0.95 } or ns.BAND[band]
         local d = DOT[r.type]
         row.dot:SetVertexColor(d[1], d[2], d[3], 1)
         row.name:SetText(EntryName(r))
         row.name:SetTextColor(c[1], c[2], c[3])
-        row.req:SetText(r.mobs and "" or r.req)
+        row.req:SetText((r.mobs or r.loot) and "" or r.req)
         row.selected = (r == sel)
         if row.selected then row:SetBackdropColor(0.09, 0.23, 0.33, 1) else row:SetBackdropColor(0, 0, 0, 0) end
         row:SetScript("OnClick", function()
