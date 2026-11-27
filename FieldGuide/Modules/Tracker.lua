@@ -160,6 +160,16 @@ function Tracker:OnSpellCast(unit, _, spellID)
         local tip = ns.Tooltip
         local node = tip.lastObjectTime and (GetTime() - tip.lastObjectTime) < 15 and tip.lastObjectName or nil
         self.lastGather = { prof = prof, time = GetTime(), node = node }
+        -- Position of the node (the player stands on it) for the spawn map
+        if prof == "herb" or prof == "ore" or prof == "skin" then
+            local mapID, x, y = ns.PlayerMapPosition()
+            if mapID then self.lastGather.pos = { mapID, x, y } end
+        end
+        -- Skinning: the corpse level picks the beast bracket
+        if prof == "skin" and UnitExists and UnitExists("target") then
+            local lvl = UnitLevel("target")
+            if lvl and lvl > 0 then self.lastGather.level = lvl end
+        end
     end
 end
 
@@ -193,6 +203,53 @@ function Tracker:OnLoot()
                 end
             end
         end
+    end
+    -- Fishing: record where the player stood when the fish was caught
+    if got and prof == "fish" then
+        local mapID, x, y = ns.PlayerMapPosition()
+        if mapID then
+            for slot = 1, GetNumLootItems() do
+                local link = GetLootSlotLink(slot)
+                local id = link and tonumber(link:match("item:(%d+)"))
+                local r = id and ns.Data.byItem[id]
+                if r and r.type == "fish" then ns.SpawnMap:Record(r.key, mapID, x, y) end
+            end
+        end
+    end
+    -- Skinning: record where the beast was skinned, under its level bracket and any special leather looted
+    if got and prof == "skin" and g and g.pos then
+        local done = {}
+        if g.level then
+            for _, r in ipairs(ns.Data.Resources) do
+                if r.type == "skin" and r.minLvl and not r.group and g.level > r.minLvl and g.level <= r.maxLvl then
+                    ns.SpawnMap:Record(r.key, g.pos[1], g.pos[2], g.pos[3])
+                    done[r.key] = true
+                    break
+                end
+            end
+        end
+        for slot = 1, GetNumLootItems() do
+            local link = GetLootSlotLink(slot)
+            local id = link and tonumber(link:match("item:(%d+)"))
+            local r = id and ns.Data.byItem[id]
+            if r and r.type == "skin" and r.group == "special" and not done[r.key] then
+                ns.SpawnMap:Record(r.key, g.pos[1], g.pos[2], g.pos[3])
+                done[r.key] = true
+            end
+        end
+    end
+    -- Record the node position under the node's own resource (not a secondary drop)
+    if got and g and g.pos and (prof == "herb" or prof == "ore") then
+        local res = g.node and ns.Data.nodeNames[g.node]
+        if not res then
+            for slot = 1, GetNumLootItems() do
+                local link = GetLootSlotLink(slot)
+                local id = link and tonumber(link:match("item:(%d+)"))
+                local r = id and ns.Data.byItem[id]
+                if r and r.type == prof and not r.group then res = r break end
+            end
+        end
+        if res and not res.group then ns.SpawnMap:Record(res.key, g.pos[1], g.pos[2], g.pos[3]) end
     end
     if got then
         self.session.gathers = self.session.gathers + 1

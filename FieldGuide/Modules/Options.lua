@@ -6,6 +6,7 @@ local Options = {}
 ns.Options = Options
 
 local function refreshAll()
+    if ns.SpawnMap then ns.SpawnMap:Refresh() end
     if ns.Window.frame and ns.Window.frame:IsShown() then ns.Window:Refresh() end
     ns.Minimap:Refresh()
 end
@@ -86,6 +87,15 @@ local function build()
                         type = "execute", order = 5, name = L["Default window size and position"], width = "double",
                         func = function() ns.Window:ResetGeometry() end,
                     },
+                },
+            },
+            spawns = {
+                type = "group", inline = true, order = 4.5, name = L["Spawn points on the world map"],
+                args = {
+                    enabled = toggle("spawns", "enabled", L["Show the spawn points of the selected herb or ore"], 1),
+                    bundled = toggle("spawns", "bundled", L["Use the bundled database"], 2),
+                    recorded = toggle("spawns", "recorded", L["Use the nodes I gathered"], 3),
+                    addons = toggle("spawns", "addons", L["Use the nodes recorded by GatherLite and GatherMate2"], 4),
                 },
             },
             resetGroup = {

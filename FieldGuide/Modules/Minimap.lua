@@ -50,10 +50,16 @@ function Minimap_:Init()
     b:SetScript("OnMouseDown", function() icon:SetPoint("CENTER", b, "TOPLEFT", CX + 1, CY - 1) end)
     b:SetScript("OnMouseUp", function() icon:SetPoint("CENTER", b, "TOPLEFT", CX, CY) end)
 
-    b:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    b:RegisterForClicks("LeftButtonUp", "RightButtonUp", "MiddleButtonUp")
     b:RegisterForDrag("LeftButton")
     b:SetScript("OnClick", function(_, button)
-        if button == "RightButton" then ns.Options:Open() else ns.Window:Toggle() end
+        if button == "RightButton" then
+            ns.Options:Open()
+        elseif button == "MiddleButton" or IsShiftKeyDown() then
+            ns.SpawnMap:Toggle()
+        else
+            ns.Window:Toggle()
+        end
     end)
     b:SetScript("OnDragStart", function(self)
         if ns.db.profile.minimap.lock then return end
@@ -72,6 +78,15 @@ function Minimap_:Init()
         GameTooltip:AddLine("Field|cff3aa0e8Guide|r")
         GameTooltip:AddLine("|cff40c040" .. L["Left-click"] .. "|r" .. ns.COLON .. L["open the window"], 1, 1, 1)
         GameTooltip:AddLine("|cff40c040" .. L["Right-click"] .. "|r" .. ns.COLON .. L["options"], 1, 1, 1)
+        -- Always listed; greyed out while no spawn points are on the map
+        local spawnAction = ns.SpawnMap:HasPoints() and L["hide the spawn points"]
+            or (ns.SpawnMap.last and L["show the spawn points again"])
+        if spawnAction then
+            GameTooltip:AddLine("|cff40c040" .. L["Middle-click or Shift-click"] .. "|r" .. ns.COLON .. spawnAction, 1, 1, 1)
+        else
+            GameTooltip:AddLine(L["Middle-click or Shift-click"] .. ns.COLON .. L["hide the spawn points"]
+                .. " (" .. L["none shown"] .. ")", 0.5, 0.5, 0.5)
+        end
         if not ns.db.profile.minimap.lock then
             GameTooltip:AddLine("|cff40c040" .. L["Drag"] .. "|r" .. ns.COLON .. L["move the icon"], 1, 1, 1)
         end

@@ -341,6 +341,7 @@ function Window:Create()
     line:SetHeight(1)
 
     local search = Box(bar, 0.05, 0.05, 0.05, 1, "EditBox")
+    self.searchBox = search
     search:SetSize(200, 32)
     search:SetFont(FONT, 14, "")
     search:SetTextColor(0.95, 0.95, 0.95)
@@ -464,8 +465,29 @@ function Window:Create()
         c.zone.text = Text(c.zone, 12, MUTED)
         c.zone.text:SetPoint("LEFT", 15, 0)
         c.zone.text:SetPoint("RIGHT")
-        -- Zone only, no coordinates: nothing to pin, so the line is not clickable
         c.zone:EnableMouse(false)
+        -- Next target + zone: click opens its sheet (and shows its spawn points on the map)
+        c.targetBtn = CreateFrame("Button", nil, c)
+        c.targetBtn:SetPoint("TOPLEFT", 6, -38)
+        c.targetBtn:SetPoint("RIGHT", -6, 0)
+        c.targetBtn:SetHeight(30)
+        c.targetBtn:SetScript("OnClick", function(self)
+            if not self.res then return end
+            Window:Select(self.res)
+            if self.mapID then Window:ShowZonePoints(self.res, self.mapID) end
+        end)
+        c.targetBtn:SetScript("OnEnter", function(self)
+            if not self.res then return end
+            c.zone.text:SetTextColor(A[1], A[2], A[3])
+            GameTooltip:SetOwner(self, "ANCHOR_TOP")
+            GameTooltip:AddLine(ns.Data:Name(self.res), 1, 1, 1)
+            GameTooltip:AddLine(L["Click to open its sheet and show its spawn points on the map."], 0.64, 0.64, 0.64, true)
+            GameTooltip:Show()
+        end)
+        c.targetBtn:SetScript("OnLeave", function()
+            c.zone.text:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
+            GameTooltip:Hide()
+        end)
         -- One alert line (all alerts are listed in the card tooltip)
         c.alertBtn = CreateFrame("Button", nil, c)
         c.alertBtn:SetPoint("TOPLEFT", 10, -70)
@@ -476,7 +498,7 @@ function Window:Create()
         c.alert:SetPoint("RIGHT")
         c.alertBtn:SetScript("OnClick", function(self)
             local loc = self.loc
-            if loc then Window:PinStatus(loc[2], loc[3], loc[4], ns.PlacePin(loc[2], loc[3], loc[4])) end
+            if loc then Window:PinStatus(loc[2], loc[3], loc[4], ns.PlacePin(loc[2], loc[3], loc[4], loc[1], self.purpose)) end
         end)
         -- Clickable reminder: "Artisan :" stays blue, the rest looks like the zone line (grey, accent on hover)
         function c.alertBtn:Render(hover)
@@ -512,6 +534,19 @@ function Window:Create()
     footer:SetHeight(24)
     self.count = Text(footer, 12, MUTED)
     self.count:SetPoint("LEFT", 10, 0)
+    -- Hide or show the spawn points on the world map (visible while a herb or ore has points)
+    local sb = CreateFrame("Button", nil, footer)
+    self.spawnBtn = sb
+    sb:SetHeight(20)
+    sb:SetPoint("LEFT", self.count, "RIGHT", 16, 0)
+    sb.icon = Icon(sb, "Map", 12, A)
+    sb.icon:SetPoint("LEFT")
+    sb.text = Text(sb, 12)
+    sb.text:SetPoint("LEFT", 16, 0)
+    sb:SetScript("OnClick", function() ns.SpawnMap:Toggle() end)
+    sb:SetScript("OnEnter", function(self) self.text:SetTextColor(A[1], A[2], A[3]) end)
+    sb:SetScript("OnLeave", function(self) self.text:SetTextColor(0.95, 0.95, 0.95) end)
+    sb:Hide()
     self.statusText = Text(footer, 12, A, "RIGHT")
     self.statusText:SetPoint("RIGHT", -24, 0) -- clear of the resize grip
 
@@ -742,7 +777,7 @@ local function NewVendorRow(parent)
     b.text:SetPoint("RIGHT", -6, 0)
     b:SetScript("OnClick", function(self)
         if self.mapID and self.x then
-            Window:PinStatus(self.mapID, self.x, self.y, ns.PlacePin(self.mapID, self.x, self.y))
+            Window:PinStatus(self.mapID, self.x, self.y, ns.PlacePin(self.mapID, self.x, self.y, self.label, self.purpose))
         end
     end)
     b:SetScript("OnEnter", function(self) self:SetBackdropColor(0.15, 0.15, 0.15, 1) end)
@@ -770,8 +805,25 @@ local function NewZone(parent)
     b.info = Text(b, 12, MUTED)
     b.info:SetPoint("TOPLEFT", 10, -21)
     b.info:SetPoint("RIGHT", -30, 0)
-    -- Zone only, no coordinates: nothing to pin, so the box is not clickable
-    b:EnableMouse(false)
+    b.map = Icon(b, "Map", 16, A)
+    b.map:SetPoint("RIGHT", -10, 0)
+    b:SetScript("OnClick", function(self)
+        if not self.clickable then return end
+        if self.active then Window:HideZonePoints(self.res) else Window:ShowZonePoints(self.res, self.mapID) end
+    end)
+    b:SetScript("OnEnter", function(self)
+        if not self.clickable then return end
+        self:SetBackdropBorderColor(A[1], A[2], A[3], 1)
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:AddLine(ns.ZoneName(self.mapID), 1, 1, 1)
+        GameTooltip:AddLine(self.active and L["Click to hide these points from the world map."]
+            or L["Click to show these points on the world map."], 0.64, 0.64, 0.64, true)
+        GameTooltip:Show()
+    end)
+    b:SetScript("OnLeave", function(self)
+        if not self.active then self:SetBackdropBorderColor(0, 0, 0, 1) end
+        GameTooltip:Hide()
+    end)
     return b
 end
 
@@ -802,6 +854,11 @@ function Window:BuildDetail(r)
     local cw = self.detail:GetWidth() - 32
     local y = 14
 
+    -- Points on the world map are shown per zone: counts for the zone boxes
+    local SM = ns.SpawnMap
+    local byMap = SM:Count(r)
+    local anyPoint = byMap and next(byMap) ~= nil
+
     local rank, max, mod = FG:Skill(r.type)
     local eff = FG:EffSkill(r.type)
     local band = r.mobs and "orange" or (r.loot and "grey") or ns.Band(r.req, eff, ns.Data:Thresholds(r))
@@ -815,6 +872,62 @@ function Window:BuildDetail(r)
     nameFs:SetText(EntryName(r))
     nameFs:SetTextColor(col[1], col[2], col[3])
     y = y + 52
+
+    -- Points on the world map: what is shown (with a link to hide it), or how to show it
+    if byMap then
+        local showing = SM:IsShowing(r)
+        local line = Acquire("spawnline", function()
+            local f = CreateFrame("Frame", nil, content)
+            f:SetHeight(16)
+            f.icon = Icon(f, "Map", 13, A)
+            f.icon:SetPoint("TOPLEFT", 0, -1)
+            f.btn = CreateFrame("Button", nil, f)
+            f.btn:SetHeight(16)
+            f.btn:SetPoint("TOPRIGHT")
+            f.btn.text = Text(f.btn, 12)
+            f.btn.text:SetPoint("RIGHT")
+            f.btn:SetScript("OnEnter", function(b) b.text:SetTextColor(A[1], A[2], A[3]) end)
+            f.btn:SetScript("OnLeave", function(b) b.text:SetTextColor(0.95, 0.95, 0.95) end)
+            f.btn:SetScript("OnClick", function(b)
+                if b.mapID then Window:ShowZonePoints(b.res, b.mapID) else Window:HideZonePoints(b.res) end
+            end)
+            f.text = Text(f, 12, A)
+            f.text:SetWordWrap(true)
+            f.text:SetPoint("TOPLEFT", 18, 0)
+            f.text:SetPoint("RIGHT", f.btn, "LEFT", -10, 0)
+            return f
+        end)
+        line:SetPoint("TOPLEFT", 16, -y)
+        line:SetWidth(cw)
+        line.btn.res, line.btn.mapID = r, nil
+        if showing then
+            line.text:SetText(L["SPAWN_SHOWN_ZONE"]:format(SM.counts.total, ns.ZoneName(SM.currentMap)))
+            line.text:SetTextColor(A[1], A[2], A[3])
+            line.btn.text:SetText(L["Hide from the map"])
+            line.btn:Show()
+        elseif not anyPoint then
+            line.text:SetText(L[r.type == "skin" and "SPAWN_NONE_SKIN" or "SPAWN_NONE"])
+            line.text:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
+            line.btn:Hide()
+        elseif r.quest and r.spot and byMap[r.spot.map] then
+            -- Quest fish: no zone list, the link shows its fishing zone
+            line.text:SetText(L["SPAWN_CLICK_ZONE"])
+            line.text:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
+            line.btn.mapID = r.spot.map
+            line.btn.text:SetText(L["Show on the map"])
+            line.btn:Show()
+        else
+            line.text:SetText(L["SPAWN_CLICK_ZONE"])
+            line.text:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
+            line.btn:Hide()
+        end
+        line.btn.text:SetTextColor(0.95, 0.95, 0.95)
+        line.btn:SetWidth(line.btn:IsShown() and ((line.btn.text:GetStringWidth() or 60) + 4) or 1)
+        line.icon:SetAlpha(showing and 1 or 0.5)
+        local h = math.max(16, math.ceil(line.text:GetStringHeight() or 14))
+        line:SetHeight(h)
+        y = y + h + 10
+    end
 
     if r.quest then
         y = self:BuildQuestDetail(r, content, cw, y, rank, max)
@@ -904,6 +1017,8 @@ function Window:BuildDetail(r)
             row:SetPoint("TOPLEFT", 28, -y)
             row:SetWidth(cw - 12)
             row.mapID, row.x, row.y = v[2], v[3], v[4]
+            row.label = v[1] or L["Vendor"]
+            row.purpose = L["Sells %s"]:format(EntryName(r))
             local coords = v[3] and ("  |cfff2f2f2" .. ("%.1f, %.1f"):format(v[3], v[4]) .. "|r") or ""
             row.text:SetText("|cfff2f2f2" .. (v[1] or L["Vendor"]) .. "|r  |cffa3a3a3" .. ns.ZoneName(v[2]) .. "|r" .. coords)
             y = y + 24
@@ -938,7 +1053,7 @@ function Window:BuildDetail(r)
             if rec.drop then lines[#lines + 1] = { L["Rare drop"], rec.drop } end
             if rec.object then
                 local o = rec.object
-                lines[#lines + 1] = { L["Found in the world"], o.map, nil, false, o.x, o.y }
+                lines[#lines + 1] = { L["Found in the world"], o.map, nil, false, o.x, o.y, name, true }
             end
             if #lines == 0 then
                 local hint = Acquire("hint", function() local t = Text(content, 12, MUTED) t:SetWordWrap(true) return t end)
@@ -952,6 +1067,13 @@ function Window:BuildDetail(r)
                 row:SetPoint("TOPLEFT", 28, -y)
                 row:SetWidth(cw - 12)
                 row.mapID, row.x, row.y = v[2], v[5], v[6]
+                -- Vendor: "Sells <recipe>"; world object: the recipe found there
+                local recipeName = name or ("#" .. rec.item)
+                if v[8] then
+                    row.label, row.purpose = recipeName, L["Found in the world"]
+                else
+                    row.label, row.purpose = v[1], L["Sells %s"]:format(recipeName)
+                end
                 local fac = v[3] and (v[3] == "Horde" and (FACTION_HORDE or "Horde") or (FACTION_ALLIANCE or "Alliance")) or nil
                 local c = v[4] and "|cff7a7a7a" or "|cfff2f2f2"
                 local coords = v[5] and ("  |cfff2f2f2" .. ("%.1f, %.1f"):format(v[5], v[6]) .. "|r") or ""
@@ -1050,19 +1172,29 @@ function Window:BuildDetail(r)
         elseif r.type == "skin" then
             local lv = ns.Data.ZoneLevels[id]
             info = lv and L["Level %s"]:format(lv[1] .. "-" .. lv[2]) or ""
+            local n = byMap and byMap[id]
+            if n then info = info .. "  ·  " .. L["%d places skinned"]:format(n) end
         elseif r.type == "fish" then
             info = L["Fishing min. %d"]:format(math.max(ns.Data.FishZoneSkill[id] or 1, r.req))
+            local n = byMap and byMap[id]
+            if n then info = info .. "  ·  " .. L["%d fishing spots"]:format(n) end
         else
             info = ns.ZoneName(ns.Data.Continent(id) == "KA" and ns.Data.KALIMDOR_ID or ns.Data.EASTERN_ID)
+            local n = byMap and byMap[id]
+            if n then info = info .. "  ·  " .. L["%d spawn points"]:format(n) end
         end
         b.info:SetText(info)
+        -- Zones with points: click shows them on the world map (only this zone)
+        b.res = r
+        b.clickable = byMap and (byMap[id] or 0) > 0
+        b.active = b.clickable and SM:IsShowing(r, id)
+        b:EnableMouse(b.clickable and true or false)
+        b.map:SetShown(b.clickable and true or false)
+        b.map:SetAlpha(b.active and 1 or 0.6)
+        b:SetBackdropBorderColor(b.active and A[1] or 0, b.active and A[2] or 0, b.active and A[3] or 0, 1)
         if col2 == zcols - 1 or i == #zones then y = y + 44 end
     end
-    local hint = Acquire("hint", function() local t = Text(content, 12, MUTED) t:SetWordWrap(true) return t end)
-    hint:SetPoint("TOPLEFT", 16, -y)
-    hint:SetWidth(cw)
-    hint:SetText(L["Click a zone to open it on the world map."])
-    y = y + 26
+    y = y + 10
 
     content:SetHeight(y)
     self.detail:SetVerticalScroll(0)
@@ -1098,11 +1230,13 @@ function Window:BuildQuestDetail(r, content, cw, y, rank, max)
     end
     y = y + math.ceil(#stats / cols) * 58 + 4
 
-    local function SpotRow(label, map, x, yy)
+    local function SpotRow(label, map, x, yy, purpose)
         local row = Acquire("vendor", function() return NewVendorRow(content) end)
         row:SetPoint("TOPLEFT", 28, -y)
         row:SetWidth(cw - 12)
         row.mapID, row.x, row.y = map, x, yy
+        row.label = label
+        row.purpose = purpose
         row.text:SetText("|cfff2f2f2" .. label .. "|r  |cffa3a3a3" .. ns.ZoneName(map) .. "|r  |cfff2f2f2"
             .. ("%.1f, %.1f"):format(x, yy) .. "|r")
         y = y + 24
@@ -1116,12 +1250,12 @@ function Window:BuildQuestDetail(r, content, cw, y, rank, max)
     end
 
     y = SectionTitle(content, y, L["Fishing spot"])
-    SpotRow(EntryName(r), r.spot.map, r.spot.x, r.spot.y)
+    SpotRow(EntryName(r), r.spot.map, r.spot.x, r.spot.y, L["Fishing spot"] .. " - " .. L["Nat Pagle quest"])
     Hint(L["Only caught while the quest is active. Click to place a map pin."])
     y = y + 8
 
     y = SectionTitle(content, y, L["Nat Pagle quest"])
-    SpotRow(np.npc, np.map, np.x, np.y)
+    SpotRow(np.npc, np.map, np.x, np.y, L["Nat Pagle quest"])
     Hint(L["Quest: level %d and Fishing %d. Unlocks Artisan Fishing."]:format(np.level, np.skill))
     return y
 end
@@ -1216,12 +1350,16 @@ function Window:UpdateProgression()
                 local zone = ns.Tracker:BestZone(t)
                 c.target:SetText("|cffa3a3a3" .. L["Next target"] .. ns.COLON .. "|r" .. ns.Colorize(ns.Data:Name(t), b))
                 c.zone.mapID = zone
+                c.targetBtn.res, c.targetBtn.mapID = t, zone
+                c.targetBtn:Show()
                 c.zone.text:SetText(zone and ns.ZoneName(zone) or "")
                 c.zone:SetShown(zone ~= nil)
                 c.tipLines[#c.tipLines + 1] = { L["Next target"] .. ns.COLON .. ns.Data:Name(t) .. (zone and (" (" .. ns.ZoneName(zone) .. ")") or ""), 0.9, 0.9, 0.9 }
             else
                 c.target:SetText("|cffa3a3a3" .. L["Next target"] .. ns.COLON .. L["none"] .. "|r")
                 c.zone:Hide()
+                c.targetBtn.res = nil
+                c.targetBtn:Hide()
             end
         else
             c.name:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
@@ -1229,6 +1367,8 @@ function Window:UpdateProgression()
             c.barBg:Hide()
             c.target:SetText("")
             c.zone:Hide()
+            c.targetBtn.res = nil
+            c.targetBtn:Hide()
         end
         local alerts = {}
         local tool = ns.Tracker:MissingTool(prof)
@@ -1244,6 +1384,7 @@ function Window:UpdateProgression()
                 -- Split after the first colon: "Artisan :" | " quête de Nat Pagle..."
                 local cut = first[1]:find(":", 1, true)
                 c.alertBtn.loc = first.loc
+                c.alertBtn.purpose = L["PROF_" .. prof] .. " - " .. first[1]
                 c.alertBtn.prefix = cut and first[1]:sub(1, cut) or ""
                 c.alertBtn.rest = cut and first[1]:sub(cut + 1) or first[1]
                 c.alertBtn:Render(c.alertBtn:IsMouseOver())
@@ -1265,7 +1406,12 @@ end
 function Window:PinStatus(mapID, x, y, placed)
     if not placed then return end
     local where = ns.ZoneName(mapID) .. (" (%.1f, %.1f)"):format(x, y)
-    state.status = L["Map pin placed: %s. Open the map to see it."]:format(where)
+    self:MapStatus(L["Map pin placed: %s. Open the map to see it."]:format(where))
+end
+
+-- Footer message about the world map, cleared when the map is closed
+function Window:MapStatus(text, kind)
+    state.status, state.statusKind = text, kind
     if WorldMapFrame and not self.mapHooked then
         self.mapHooked = true
         -- HookScript only adds a post-hook: it does not taint the map
@@ -1279,7 +1425,55 @@ function Window:PinStatus(mapID, x, y, placed)
     self:UpdateFooter()
 end
 
+function Window:UpdateSpawnButton()
+    local sb = self.spawnBtn
+    if not sb then return end
+    local SM = ns.SpawnMap
+    if SM:HasPoints() or SM.last then
+        sb.text:SetText(SM.current and L["Hide the spawn points"] or L["Show the spawn points"])
+        sb.icon:SetAlpha(SM.current and 1 or 0.5)
+        sb:SetWidth((sb.text:GetStringWidth() or 100) + 18)
+        sb:Show()
+    else
+        sb:Hide()
+    end
+end
+
+-- Points of one resource in one zone; the sheet is rebuilt at the same scroll position
+function Window:ShowZonePoints(r, mapID)
+    if ns.SpawnMap:Show(r, mapID) then
+        self:MapStatus(ns.SpawnMap:StatusText(), "spawn")
+    end
+    self:RebuildDetailKeepScroll(r)
+end
+
+function Window:HideZonePoints(r)
+    ns.SpawnMap:HideCurrent()
+    self:MapStatus(L["Spawn points hidden from the world map."], "spawn")
+    self:RebuildDetailKeepScroll(r)
+end
+
+function Window:RebuildDetailKeepScroll(r)
+    local scroll = self.detail:GetVerticalScroll()
+    self:BuildDetail(r)
+    self.detail:SetVerticalScroll(math.min(scroll, self.detail:GetVerticalScrollRange() or scroll))
+    self.detail:UpdateThumb()
+end
+
+-- Open a resource's sheet from elsewhere (cards): filters are relaxed so it is in the list
+function Window:Select(r)
+    if not r then return end
+    state.tab = r.type
+    state.cont, state.harv, state.grey, state.myZone = "all", false, false, false
+    if self.searchBox and (self.searchBox:GetText() or "") ~= "" then self.searchBox:SetText("") end
+    state.q = ""
+    state.sel = r.key
+    state.status = nil
+    self:Refresh()
+end
+
 function Window:UpdateFooter()
+    self:UpdateSpawnButton()
     if state.status then
         self.statusText:SetText(state.status)
     elseif state.myZone then

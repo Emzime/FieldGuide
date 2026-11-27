@@ -176,8 +176,9 @@ end
 -- Map pin: a user waypoint, super-tracked. The world map is never opened from here:
 -- opening it from addon code taints the map canvas, and Blizzard then blocks its pins
 -- (ADDON_ACTION_BLOCKED "SetPassThroughButtons") the next time the player opens the map.
-function ns.PlacePin(mapID, x, y)
+function ns.PlacePin(mapID, x, y, label, purpose)
     if type(mapID) ~= "number" or not (x and y) then return false end
+    ns.pin = { mapID = mapID, x = x / 100, y = y / 100, label = label, purpose = purpose }
     if not (C_Map and C_Map.SetUserWaypoint and UiMapPoint and UiMapPoint.CreateFromCoordinates) then return false end
     local ok, placed = pcall(function()
         if C_Map.CanSetUserWaypointOnMap and not C_Map.CanSetUserWaypointOnMap(mapID) then return false end
@@ -186,6 +187,40 @@ function ns.PlacePin(mapID, x, y)
         return true
     end)
     return ok and placed or false
+end
+
+-- Blizzard map pins have no name: add ours to the pin tooltip.
+-- Post-hook on GameTooltip only, nothing is written into the map or its pins.
+do
+    local busy
+    local function IsOurPin()
+        local p = ns.pin
+        if not p or not (C_Map and C_Map.GetUserWaypoint) then return false end
+        local wp = C_Map.GetUserWaypoint()
+        if not wp or wp.uiMapID ~= p.mapID or not wp.position then return false end
+        -- Position may be a Vector2D or a plain { x, y } table depending on the client
+        local pos = wp.position
+        local px, py
+        if type(pos.GetXY) == "function" then px, py = pos:GetXY() else px, py = pos.x, pos.y end
+        if not (px and py) then return false end
+        return math.abs(px - p.x) < 0.001 and math.abs(py - p.y) < 0.001
+    end
+    GameTooltip:HookScript("OnShow", function(tt)
+        if busy or not ns.pin or not ns.pin.label then return end
+        local first = _G[tt:GetName() .. "TextLeft1"]
+        local text = first and first:GetText()
+        local owner = tt:GetOwner()
+        local isPin = (MAP_PIN_SHARING and text == MAP_PIN_SHARING)
+            or (owner and type(owner.pinTemplate) == "string" and owner.pinTemplate:find("Waypoint"))
+        if not isPin then return end
+        if not IsOurPin() then return end
+        busy = true
+        tt:AddLine(" ")
+        tt:AddLine("|cff3aa0e8FieldGuide|r  |cfff2f2f2" .. ns.pin.label .. "|r")
+        if ns.pin.purpose then tt:AddLine(ns.pin.purpose, 1, 1, 1, true) end
+        tt:Show()
+        busy = false
+    end)
 end
 
 -- Quest state helpers (work on clients with or without C_QuestLog)
@@ -235,11 +270,13 @@ local defaults = {
         alerts = { newNode = true, grey = true, tool = true, trainer = true, questFish = true, sound = true, duration = 6 },
         minimap = { hide = false, lock = false, angle = 215 },
         window = { scale = 1, alpha = 1, session = true },
+        spawns = { enabled = true, bundled = true, recorded = true, addons = true },
     },
     global = {
         learnedZones = {},   -- [resourceKey] = { [mapID] = count }
         learnedNodes = {},   -- [locale] = { [nodeName] = resourceKey }
         learnedMobs = {},    -- [prof] = { [name] = { [mapID] = true } }
+        spawns = {},         -- [resourceKey] = { [mapID] = { x1, y1, x2, y2, ... } } recorded while gathering
     },
     char = {
         trainerWarned = {},  -- [prof .. max] = true
@@ -259,6 +296,7 @@ function FG:OnEnable()
     ns.Tooltip:Init()
     ns.Tracker:Init()
     ns.Minimap:Init()
+    ns.SpawnMap:InitMapButton()
     ns.Options:Init()
 end
 
