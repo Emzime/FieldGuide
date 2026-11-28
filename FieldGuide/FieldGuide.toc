@@ -24,6 +24,7 @@ Locales\zhTW.lua
 FieldGuide.lua
 Modules\Data.lua
 Modules\Spawns.lua
+Modules\SpawnsQuest.lua
 Modules\SpawnMap.lua
 Modules\Tooltip.lua
 Modules\Alerts.lua

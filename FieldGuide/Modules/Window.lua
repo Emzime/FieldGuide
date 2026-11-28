@@ -909,9 +909,17 @@ function Window:BuildDetail(r)
             line.text:SetText(L[r.type == "skin" and "SPAWN_NONE_SKIN" or "SPAWN_NONE"])
             line.text:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
             line.btn:Hide()
+        elseif r.entrance then
+            -- Instance only: the link shows the entrance
+            local e = r.entrance
+            line.text:SetText(L["Instance entrance: %s"]:format(ns.ZoneName(e.map) .. (" %.1f, %.1f"):format(e.x, e.y)))
+            line.text:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
+            line.btn.mapID = e.map
+            line.btn.text:SetText(L["Show on the map"])
+            line.btn:Show()
         elseif r.quest and r.spot and byMap[r.spot.map] then
             -- Quest fish: no zone list, the link shows its fishing zone
-            line.text:SetText(L["SPAWN_CLICK_ZONE"])
+            line.text:SetText(L["Fishing zones"] .. ns.COLON .. ns.ZoneName(r.spot.map) .. "  ·  " .. L["%d fishing spots"]:format(byMap[r.spot.map]))
             line.text:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
             line.btn.mapID = r.spot.map
             line.btn.text:SetText(L["Show on the map"])
@@ -1154,45 +1162,65 @@ function Window:BuildDetail(r)
         y = y + math.ceil(#boxes / bcols) * 58 + 4
     end
 
-    -- Zones
-    local zoneTitle = (r.type == "skin" and L["Zones for these beasts"]) or (r.type == "fish" and L["Fishing zones"]) or L["Gathering zones"]
-    y = SectionTitle(content, y, zoneTitle)
-    local zones, seen = ns.Data:Zones(r)
-    local zcols, zw = Grid(cw, 2, 200)
-    for i, id in ipairs(zones) do
-        local b = Acquire("zone", function() return NewZone(content) end)
-        local col2 = (i - 1) % zcols
-        b:SetPoint("TOPLEFT", 16 + col2 * (zw + 8), -y)
-        b:SetWidth(zw)
-        b.mapID = id
-        b.name:SetText(ns.ZoneName(id))
-        local info
-        if seen[id] == "learned" then
-            info = L["Recorded by you"]
-        elseif r.type == "skin" then
-            local lv = ns.Data.ZoneLevels[id]
-            info = lv and L["Level %s"]:format(lv[1] .. "-" .. lv[2]) or ""
-            local n = byMap and byMap[id]
-            if n then info = info .. "  ·  " .. L["%d places skinned"]:format(n) end
-        elseif r.type == "fish" then
-            info = L["Fishing min. %d"]:format(math.max(ns.Data.FishZoneSkill[id] or 1, r.req))
-            local n = byMap and byMap[id]
-            if n then info = info .. "  ·  " .. L["%d fishing spots"]:format(n) end
-        else
-            info = ns.ZoneName(ns.Data.Continent(id) == "KA" and ns.Data.KALIMDOR_ID or ns.Data.EASTERN_ID)
-            local n = byMap and byMap[id]
-            if n then info = info .. "  ·  " .. L["%d spawn points"]:format(n) end
+    -- Zones (not for resources found only inside an instance: the sheet lists the instance)
+    if not r.inside then
+        -- Zones
+        local zoneTitle = (r.type == "skin" and L["Zones for these beasts"]) or (r.type == "fish" and L["Fishing zones"]) or L["Gathering zones"]
+        y = SectionTitle(content, y, zoneTitle)
+        local zones, seen = ns.Data:Zones(r)
+        -- Zones that have points but are not in the guide's list are added after it (most points first)
+        if byMap then
+            local listed, extra = {}, {}
+            for _, id in ipairs(zones) do listed[id] = true end
+            for id, n in pairs(byMap) do
+                if not listed[id] and n > 0 and ns.ZoneName(id) then extra[#extra + 1] = id end
+            end
+            table.sort(extra, function(x, z) return byMap[x] > byMap[z] end)
+            if #extra > 0 then
+                local merged = {}
+                for _, id in ipairs(zones) do merged[#merged + 1] = id end
+                for _, id in ipairs(extra) do merged[#merged + 1] = id end
+                zones = merged
+            end
         end
-        b.info:SetText(info)
-        -- Zones with points: click shows them on the world map (only this zone)
-        b.res = r
-        b.clickable = byMap and (byMap[id] or 0) > 0
-        b.active = b.clickable and SM:IsShowing(r, id)
-        b:EnableMouse(b.clickable and true or false)
-        b.map:SetShown(b.clickable and true or false)
-        b.map:SetAlpha(b.active and 1 or 0.6)
-        b:SetBackdropBorderColor(b.active and A[1] or 0, b.active and A[2] or 0, b.active and A[3] or 0, 1)
-        if col2 == zcols - 1 or i == #zones then y = y + 44 end
+        local zcols, zw = Grid(cw, 2, 200)
+        for i, id in ipairs(zones) do
+            local b = Acquire("zone", function() return NewZone(content) end)
+            local col2 = (i - 1) % zcols
+            b:SetPoint("TOPLEFT", 16 + col2 * (zw + 8), -y)
+            b:SetWidth(zw)
+            b.mapID = id
+            b.name:SetText(ns.ZoneName(id))
+            local info
+            if seen[id] == "learned" then
+                info = L["Recorded by you"]
+            elseif r.type == "skin" then
+                local lv = ns.Data.ZoneLevels[id]
+                info = lv and L["Level %s"]:format(lv[1] .. "-" .. lv[2]) or ""
+                local n = byMap and byMap[id]
+                if n then info = info .. "  ·  " .. L["%d places skinned"]:format(n) end
+            elseif r.type == "fish" then
+                info = L["Fishing min. %d"]:format(math.max(ns.Data.FishZoneSkill[id] or 1, r.req))
+                local n = byMap and byMap[id]
+                if n then info = info .. "  ·  " .. L["%d fishing spots"]:format(n) end
+            else
+                info = ns.ZoneName(ns.Data.Continent(id) == "KA" and ns.Data.KALIMDOR_ID or ns.Data.EASTERN_ID)
+                local n = byMap and byMap[id]
+                if n then info = info .. "  ·  " .. L["%d spawn points"]:format(n) end
+            end
+            -- No known point in this zone: say so instead of a silent, unclickable box
+            if byMap and not byMap[id] then info = info .. "  ·  |cff7a7a7a" .. L["no known point"] .. "|r" end
+            b.info:SetText(info)
+            -- Zones with points: click shows them on the world map (only this zone)
+            b.res = r
+            b.clickable = byMap and (byMap[id] or 0) > 0
+            b.active = b.clickable and SM:IsShowing(r, id)
+            b:EnableMouse(b.clickable and true or false)
+            b.map:SetShown(b.clickable and true or false)
+            b.map:SetAlpha(b.active and 1 or 0.6)
+            b:SetBackdropBorderColor(b.active and A[1] or 0, b.active and A[2] or 0, b.active and A[3] or 0, 1)
+            if col2 == zcols - 1 or i == #zones then y = y + 44 end
+        end
     end
     y = y + 10
 

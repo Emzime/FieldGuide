@@ -142,7 +142,9 @@ add({ key = "incendicite", type = "ore", req = 65, nodes = { "incendicite" }, it
 add({ key = "bloodstone", type = "ore", req = 75, nodes = { "bloodstone" }, item = 4278, zones = { Z.ARATHI } })
 add({ key = "iron", type = "ore", req = 125, nodes = { "iron" }, item = 2772, extra = { STONE.heavy, GEM.jade, GEM.citrine, GEM.moonstone, GEM.aquamarine },
     zones = { Z.ARATHI, Z.STV, Z.DESOLACE, Z.NEEDLES, Z.ALTERAC, Z.BADLANDS, Z.HILLSBRAD, Z.STONETALON, Z.DUSTWALLOW, Z.FERALAS, Z.SWAMP, Z.ASHENVALE } })
-add({ key = "indurium", type = "ore", req = 150, nodes = { "indurium" }, item = 5833, zones = { Z.BADLANDS } })
+-- Only inside Uldaman (zones = where the instance is, for the filters; the sheet shows the instance)
+add({ key = "indurium", type = "ore", req = 150, nodes = { "indurium" }, item = 5833, zones = { Z.BADLANDS }, inside = true, where = { { { 230, "Uldaman" } } },
+    entrance = { map = Z.BADLANDS, x = 44.6, y = 12.1 } })
 add({ key = "gold", type = "ore", req = 155, nodes = { "gold", "goldOoze" }, item = 2776, extra = { GEM.jade, GEM.citrine, GEM.moonstone },
     zones = { Z.ARATHI, Z.STV, Z.DESOLACE, Z.NEEDLES, Z.ALTERAC, Z.BADLANDS, Z.HINTERLANDS, Z.TANARIS, Z.SEARING, Z.FERALAS, Z.UNGORO, Z.AZSHARA } })
 add({ key = "mithril", type = "ore", req = 175, nodes = { "mithril", "mithrilOoze" }, item = 3858, extra = { STONE.solid, GEM.citrine, GEM.aquamarine, GEM.starRuby, RARE.blackVitriol },
@@ -151,10 +153,15 @@ add({ key = "truesilver", type = "ore", req = 230, nodes = { "truesilver", "true
     zones = { Z.HINTERLANDS, Z.SEARING, Z.BADLANDS, Z.TANARIS, Z.FERALAS, Z.AZSHARA, Z.FELWOOD, Z.BURNING, Z.UNGORO, Z.BLASTED, Z.STV, Z.ALTERAC, Z.SWAMP, Z.WPL, Z.EPL, Z.WINTERSPRING, Z.SILITHUS } })
 add({ key = "darkiron", type = "ore", req = 230, nodes = { "darkiron" }, item = 11370, extra = { RARE.blackVitriol, RARE.bloodMountain, RARE.blackDiamond }, zones = { Z.SEARING, Z.BURNING } })
 add({ key = "smallthorium", type = "ore", req = 245, nodes = { "smallthorium", "thoriumOoze" }, item = 10620, extra = { STONE.dense, GEM.starRuby, GEM.sapphire, GEM.opal, GEM.emerald, GEM.diamond, RARE.blackVitriol },
-    zones = { Z.UNGORO, Z.BURNING, Z.WINTERSPRING, Z.SILITHUS, Z.FELWOOD, Z.AZSHARA, Z.WPL, Z.EPL, Z.BLASTED, Z.SEARING, Z.TANARIS, Z.FERALAS, Z.HINTERLANDS } })
-add({ key = "hakkarithorium", type = "ore", req = 245, nodes = { "hakkarithorium" }, item = 10620, zones = { Z.STV } })
+    -- No spawn recorded in Azshara on Forever: zone removed
+    zones = { Z.UNGORO, Z.BURNING, Z.WINTERSPRING, Z.SILITHUS, Z.FELWOOD, Z.WPL, Z.EPL, Z.BLASTED, Z.SEARING, Z.TANARIS, Z.FERALAS, Z.HINTERLANDS } })
+-- Only inside Zul'Gurub
+-- Requirement as published by GatherLite (Forever)
+add({ key = "hakkarithorium", type = "ore", req = 275, nodes = { "hakkarithorium" }, item = 10620, zones = { Z.STV }, inside = true, where = { { { 233, "Zul'Gurub" } } },
+    entrance = { map = Z.STV, x = 53.9, y = 17.6 } })
 add({ key = "richthorium", type = "ore", req = 275, nodes = { "richthorium", "richthoriumOoze" }, item = 10620, extra = { STONE.dense, GEM.starRuby, GEM.sapphire, GEM.opal, GEM.emerald, GEM.diamond, GEM.arcane },
-    zones = { Z.UNGORO, Z.BURNING, Z.WINTERSPRING, Z.SILITHUS, Z.EPL, Z.FELWOOD, Z.AZSHARA } })
+    -- No spawn recorded in Felwood on Forever: zone removed
+    zones = { Z.UNGORO, Z.BURNING, Z.WINTERSPRING, Z.SILITHUS, Z.EPL, Z.AZSHARA } })
 -- Forever: Heavy Thorium Vein, Scourge area of Mount Hyjal (ore 248815)
 add({ key = "heavythorium", type = "ore", req = 300, nodes = { "heavythorium" }, item = 248815, extra = { STONE.dense }, zones = { Z.HYJAL } })
 

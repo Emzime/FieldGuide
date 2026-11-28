@@ -154,6 +154,11 @@ end
 
 function SpawnMap:Collect(r)
     local points = {}
+    if r.inside then
+        local e = r.entrance
+        if e then AddPoint(points, e.map, e.x / 100, e.y / 100, "entrance") end
+        return points
+    end
     local opt = ns.db.profile.spawns
     local ok = function(f, ...) pcall(f, ...) end
     if opt.recorded then ok(FromRecorded, points, r.key) end
@@ -170,6 +175,8 @@ end
 ------------------------------------------------------------------------
 function SpawnMap:Supports(r)
     if not r then return false end
+    -- Instance-only resources: one point, the instance entrance
+    if r.inside then return r.entrance ~= nil end
     -- Skinning: only the places where the player skinned (beasts move, no database)
     if r.type == "skin" then return r.group == nil or r.group == "special" end
     if not r.item then return false end
